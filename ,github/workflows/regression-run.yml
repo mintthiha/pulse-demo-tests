@@ -1,0 +1,27 @@
+name: Tests regression run
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests on'
+        required: true
+        default: 'main'
+      tests:
+        description: 'Comma-separated list of tests to run'
+        required: false
+
+jobs:
+  run-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Run regression tests
+        run: |
+          echo "Running regression on branch: ${{ inputs.branch }}"
+          echo "Tests to run: ${{ inputs.tests }}"
+          echo "Simulating test execution..."
