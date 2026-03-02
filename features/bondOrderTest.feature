@@ -13,6 +13,12 @@ Feature: Bond Order Management
     When the order is submitted
     Then the order status should be confirmed
 
+  @BondOrder
+  Scenario: SCRUM-5-3 - Remove Bond Order
+    Given a bond order that is cancellable
+    When the order is cancelled
+    Then the order status should be cancelled
+
   @BondOrder @RiskManagement
   Scenario: SCRUM-1 - Test Bond Order risk limit breach
     Given a bond order exceeds the risk limit
