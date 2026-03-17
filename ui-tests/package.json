@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Playwright UI tests for Bloom",
   "scripts": {
-  "test": "cucumber-js",
-  "test:smoke": "cucumber-js --tags @Smoke",
-  "test:ui": "cucumber-js --tags @UI",
-  "report": "start cucumber-report/index.html"
+    "test": "cucumber-js",
+    "test:headed": "cucumber-js --world-parameters \"{\\\"headed\\\":true}\"",
+    "test:smoke": "cucumber-js --tags @Smoke",
+    "test:ui": "cucumber-js --tags @UI",
+    "report": "start cucumber-report/index.html"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^12.7.0",

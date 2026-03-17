@@ -1,4 +1,4 @@
-import { Before, After } from "@cucumber/cucumber";
+import { Before, After, ITestCaseHookParameter } from "@cucumber/cucumber";
 import { chromium } from "@playwright/test";
 import { BloomWorld } from "./world";
 
@@ -9,8 +9,9 @@ const BASE_URL = process.env.BLOOM_UI_URL || "http://localhost:3002";
  * Launches a fresh Chromium browser, creates a new context and page.
  * Each scenario gets its own isolated browser session.
  */
-Before(async function (this: BloomWorld) {
-  this.browser = await chromium.launch();
+Before(async function (this: BloomWorld, scenario: ITestCaseHookParameter) {
+  const headed = (this.parameters as Record<string, boolean>)?.headed ?? false;
+  this.browser = await chromium.launch({ headless: !headed });
   this.context = await this.browser.newContext({ baseURL: BASE_URL });
   this.page = await this.context.newPage();
 });
