@@ -1,0 +1,15 @@
+{
+  "name": "bloom-ui-tests",
+  "version": "1.0.0",
+  "description": "Playwright UI tests for Bloom",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:smoke": "playwright test --grep @smoke",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.42.0",
+    "@types/node": "^25.5.0"
+  }
+}

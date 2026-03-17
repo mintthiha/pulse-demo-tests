@@ -8,20 +8,157 @@ on:
         required: true
         default: 'main'
       tests:
-        description: 'Comma-separated list of tests to run'
+        description: 'Which suite to run: api, ui, or all'
         required: false
+        default: 'all'
 
 jobs:
-  run-regression:
+  api-tests:
+    name: API Tests (Cucumber + REST Assured)
     runs-on: ubuntu-latest
+    if: ${{ inputs.tests == 'all' || inputs.tests == 'api' }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bloom
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
 
-      - name: Run regression tests
+      - name: Checkout Bloom app
+        uses: actions/checkout@v4
+        with:
+          repository: mintthiha/bloom
+          path: bloom-app
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and start Bloom backend
+        working-directory: bloom-app/backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bloom
+          PORT: 3001
         run: |
-          echo "Running regression on branch: ${{ inputs.branch }}"
-          echo "Tests to run: ${{ inputs.tests }}"
-          echo "Simulating test execution..."
+          npm install
+          npx prisma generate
+          npx prisma migrate deploy
+          npm run build
+          node dist/server.js &
+          sleep 3
+          curl --fail http://localhost:3001/health
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Run API tests
+        working-directory: api-tests
+        env:
+          BLOOM_API_URL: http://localhost:3001
+        run: mvn test -Dbloom.api.url=http://localhost:3001
+
+      - name: Upload Cucumber report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cucumber-report
+          path: api-tests/target/cucumber-reports/
+
+  ui-tests:
+    name: UI Tests (Playwright)
+    runs-on: ubuntu-latest
+    if: ${{ inputs.tests == 'all' || inputs.tests == 'ui' }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bloom
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Checkout Bloom app
+        uses: actions/checkout@v4
+        with:
+          repository: mintthiha/bloom
+          path: bloom-app
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and start Bloom backend
+        working-directory: bloom-app/backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bloom
+          PORT: 3001
+        run: |
+          npm install
+          npx prisma generate
+          npx prisma migrate deploy
+          npm run build
+          node dist/server.js &
+          sleep 3
+
+      - name: Install and start Bloom frontend
+        working-directory: bloom-app/frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+        run: |
+          npm install
+          npm run build
+          npm start &
+          sleep 5
+          curl --fail http://localhost:3000
+
+      - name: Install Playwright
+        working-directory: ui-tests
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Run UI tests
+        working-directory: ui-tests
+        env:
+          BLOOM_UI_URL: http://localhost:3000
+        run: npm test
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: ui-tests/playwright-report/
