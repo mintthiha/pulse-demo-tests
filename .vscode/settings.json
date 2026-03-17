@@ -1,6 +1,7 @@
 {
   "cucumberautocomplete.steps": [
-    "api-tests/src/test/java/steps/*.java"
+    "api-tests/src/test/java/steps/*.java",
+    "ui-tests/framework/steps/*.ts"
   ],
   "cucumberautocomplete.syncfeatures": "api-tests/src/test/resources/features/*.feature",
   "cucumberautocomplete.strictGherkinCompletion": false

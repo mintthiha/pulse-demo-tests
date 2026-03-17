@@ -6,6 +6,9 @@ ui-tests/node_modules/
 ui-tests/playwright-report/
 ui-tests/test-results/
 
+# Cucumber UI report
+ui-tests/cucumber-report/
+
 # OS
 .DS_Store
 Thumbs.db

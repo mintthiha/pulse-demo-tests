@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "description": "Playwright UI tests for Bloom",
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:smoke": "playwright test --grep @smoke",
-    "report": "playwright show-report"
+  "test": "cucumber-js",
+  "test:smoke": "cucumber-js --tags @Smoke",
+  "test:ui": "cucumber-js --tags @UI",
+  "report": "start cucumber-report/index.html"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^12.7.0",
     "@playwright/test": "^1.42.0",
-    "@types/node": "^25.5.0"
+    "@types/node": "^25.5.0",
+    "ts-node": "^10.9.2"
   }
 }
