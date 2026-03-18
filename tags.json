@@ -1,0 +1,46 @@
+{
+  "tags": [
+    {
+      "name": "Bloom",
+      "value": "@Bloom",
+      "category": "suite",
+      "description": "Marks all tests targeting the Bloom banking application"
+    },
+    {
+      "name": "UI",
+      "value": "@UI",
+      "category": "suite",
+      "description": "Marks all Playwright UI tests"
+    },
+    {
+      "name": "Accounts",
+      "value": "@Accounts",
+      "category": "feature",
+      "description": "Tests related to account creation and retrieval"
+    },
+    {
+      "name": "Transactions",
+      "value": "@Transactions",
+      "category": "feature",
+      "description": "Tests related to deposit, withdrawal, and transfer operations"
+    },
+    {
+      "name": "RiskManagement",
+      "value": "@RiskManagement",
+      "category": "feature",
+      "description": "Tests related to risk controls such as frozen accounts"
+    },
+    {
+      "name": "Smoke",
+      "value": "@Smoke",
+      "category": "priority",
+      "description": "Critical path tests, run to test overall structure of the app"
+    },
+    {
+      "name": "Pending",
+      "value": "@Pending",
+      "category": "status",
+      "description": "Test is defined but not yet implementable — missing functionality in the app"
+    }
+  ]
+}
