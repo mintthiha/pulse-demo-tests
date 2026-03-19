@@ -35,3 +35,33 @@ Feature: Account Management
   Scenario: Fetching a non-existent account returns 404
     When account "nonexistent-id-000" is fetched
     Then the response status is 404
+
+  @Accounts @Smoke
+  Scenario: List all accounts returns a non-empty array
+    Given a chequing account exists for "Pierre Gagnon"
+    When all accounts are listed
+    Then the response status is 200
+    And the response contains at least 1 account
+
+  @Accounts
+  Scenario: List all accounts includes both chequing and savings accounts
+    Given a chequing account exists for "Sophie Martin"
+    And a savings account exists for "Louis Tremblay"
+    When all accounts are listed
+    Then the response status is 200
+    And the list includes an account for "Sophie Martin"
+    And the list includes an account for "Louis Tremblay"
+
+  @Accounts @RiskManagement
+  Scenario: Freeze an account
+    Given a chequing account exists for "Ryan Cote"
+    When the account is frozen
+    Then the response status is 200
+    And the account is now frozen
+
+  @Accounts @RiskManagement
+  Scenario: Unfreeze a frozen account
+    Given a frozen chequing account exists for "Emma Paquette"
+    When the account is unfrozen
+    Then the response status is 200
+    And the account is not frozen

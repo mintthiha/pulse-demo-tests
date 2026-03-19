@@ -2,7 +2,7 @@ import { Before, After, ITestCaseHookParameter } from "@cucumber/cucumber";
 import { chromium } from "@playwright/test";
 import { BloomWorld } from "./world";
 
-const BASE_URL = process.env.BLOOM_UI_URL || "http://localhost:3002";
+const BASE_URL = process.env.BLOOM_UI_URL || "http://localhost:3000";
 
 /**
  * Runs before every scenario.
