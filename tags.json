@@ -37,6 +37,12 @@
       "description": "Critical path tests, run to test overall structure of the app"
     },
     {
+      "name": "Freeze",
+      "value": "@Freeze",
+      "category": "feature",
+      "description": "Tests related to the freeze and unfreeze account functionality"
+    },
+    {
       "name": "Pending",
       "value": "@Pending",
       "category": "status",

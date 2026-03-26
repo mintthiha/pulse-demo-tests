@@ -131,3 +131,59 @@ Then("the account balances chart is visible", async function (this: BloomWorld) 
   const dashboard = new DashboardPage(this.page);
   await expect(dashboard.balancesChart).toBeVisible();
 });
+
+/**
+ * Clicks the Freeze button and waits for the account to reflect the frozen state.
+ */
+When("the user freezes the account", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await accountPage.freeze();
+});
+
+/**
+ * Clicks the Unfreeze button and waits for the account to reflect the active state.
+ */
+When("the user unfreezes the account", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await accountPage.unfreeze();
+});
+
+/**
+ * Asserts the FROZEN badge is visible in the account card header.
+ */
+Then("the frozen badge is visible", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await expect(accountPage.frozenBadge).toBeVisible();
+});
+
+/**
+ * Asserts the FROZEN badge is no longer visible in the account card header.
+ */
+Then("the frozen badge is not visible", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await expect(accountPage.frozenBadge).not.toBeVisible();
+});
+
+/**
+ * Asserts the frozen account message banner is visible below the account card.
+ */
+Then("the frozen account message is visible", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await expect(accountPage.frozenMessage).toBeVisible();
+});
+
+/**
+ * Asserts the New Transaction panel is not rendered (account is frozen).
+ */
+Then("the transaction form is hidden", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await expect(accountPage.newTransactionPanel).not.toBeVisible();
+});
+
+/**
+ * Asserts the New Transaction panel is rendered (account is active).
+ */
+Then("the transaction form is visible", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await expect(accountPage.newTransactionPanel).toBeVisible();
+});

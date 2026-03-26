@@ -7,6 +7,11 @@ export class AccountPage {
   readonly analyticsPanel: Locator;
   readonly balanceHistoryChart: Locator;
   readonly transactionTypeChart: Locator;
+  readonly freezeButton: Locator;
+  readonly unfreezeButton: Locator;
+  readonly frozenBadge: Locator;
+  readonly frozenMessage: Locator;
+  readonly newTransactionPanel: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -15,6 +20,11 @@ export class AccountPage {
     this.analyticsPanel = page.getByText("Analytics");
     this.balanceHistoryChart = page.getByText("Balance History");
     this.transactionTypeChart = page.getByText("Transaction Types");
+    this.freezeButton = page.getByRole("button", { name: /^Freeze$/i });
+    this.unfreezeButton = page.getByRole("button", { name: /^Unfreeze$/i });
+    this.frozenBadge = page.getByText("FROZEN", { exact: true });
+    this.frozenMessage = page.getByText("This account is frozen");
+    this.newTransactionPanel = page.getByText("New Transaction");
   }
 
   /**
@@ -76,6 +86,22 @@ export class AccountPage {
    */
   async expectError(message: string) {
     await expect(this.page.getByText(message)).toBeVisible();
+  }
+
+  /**
+   * Clicks the Freeze button and waits for the Unfreeze button to confirm the state change.
+   */
+  async freeze() {
+    await this.freezeButton.click();
+    await expect(this.unfreezeButton).toBeVisible();
+  }
+
+  /**
+   * Clicks the Unfreeze button and waits for the Freeze button to confirm the state change.
+   */
+  async unfreeze() {
+    await this.unfreezeButton.click();
+    await expect(this.freezeButton).toBeVisible();
   }
 
   /** Clicks the back link and waits for navigation to the dashboard. */
