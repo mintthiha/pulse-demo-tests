@@ -30,8 +30,8 @@ Given("a {string} account exists for {string}", async function (this: BloomWorld
   const dashboard = new DashboardPage(this.page);
   await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS");
 
-  // Grab the account ID from the href of the account row link
-  const accountRow = this.page.getByRole("link", { name: new RegExp(name) });
+  // Grab the account ID from the href of the most recently created account row link
+  const accountRow = this.page.getByRole("link", { name: new RegExp(name) }).first();
   const href = await accountRow.getAttribute("href");
   this.accountIds[name] = href?.split("/account/")[1] ?? "";
 });
@@ -72,7 +72,7 @@ Then("the header shows {string}", async function (this: BloomWorld, text: string
  * Asserts an account row link with the given owner name is visible on the dashboard.
  */
 Then("an account row for {string} is visible", async function (this: BloomWorld, name: string) {
-  await expect(this.page.getByRole("link", { name: new RegExp(name) })).toBeVisible();
+  await expect(this.page.getByRole("link", { name: new RegExp(name) }).first()).toBeVisible();
 });
 
 /**
@@ -121,4 +121,13 @@ Then("the available balance shows {string}", async function (this: BloomWorld, b
  */
 Then("the user should be back on the dashboard", async function (this: BloomWorld) {
   await expect(this.page).toHaveURL("/");
+});
+
+/**
+ * Asserts the Account Balances bar chart section is visible on the dashboard.
+ * This chart only renders when two or more accounts exist.
+ */
+Then("the account balances chart is visible", async function (this: BloomWorld) {
+  const dashboard = new DashboardPage(this.page);
+  await expect(dashboard.balancesChart).toBeVisible();
 });

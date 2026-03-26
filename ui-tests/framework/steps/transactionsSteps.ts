@@ -93,3 +93,28 @@ Then("the stats section shows {string}", async function (this: BloomWorld, label
   const statsSection = this.page.getByText("Total Balance").locator("../..");
   await expect(statsSection.getByText(label)).toBeVisible();
 });
+
+/**
+ * Asserts the Analytics panel heading is visible on the account detail page.
+ * This panel only renders after at least one transaction has been made.
+ */
+Then("the analytics panel is visible", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await expect(accountPage.analyticsPanel).toBeVisible();
+});
+
+/**
+ * Asserts the Balance History chart label is visible inside the Analytics panel.
+ */
+Then("the balance history chart is visible", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await expect(accountPage.balanceHistoryChart).toBeVisible();
+});
+
+/**
+ * Asserts the Transaction Types donut chart label is visible inside the Analytics panel.
+ */
+Then("the transaction type breakdown is visible", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await expect(accountPage.transactionTypeChart).toBeVisible();
+});

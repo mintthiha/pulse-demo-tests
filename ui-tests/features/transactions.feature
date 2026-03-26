@@ -51,6 +51,22 @@ Feature: Transactions
     And the user deposits 500 with description "Salary payment"
     Then the transaction description "Salary payment" is visible
 
+  Scenario: Analytics panel appears after a transaction
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Nathan Beaulieu"
+    When the user opens the account for "Nathan Beaulieu"
+    And the user deposits 500
+    Then the analytics panel is visible
+
+  Scenario: Balance history and transaction type charts are visible after multiple transactions
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Olivia Bergeron"
+    When the user opens the account for "Olivia Bergeron"
+    And the user deposits 600
+    And the user withdraws 200
+    Then the balance history chart is visible
+    And the transaction type breakdown is visible
+
   Scenario: Dashboard stats update after account creation
     Given the user is on the dashboard
     When the user creates a "CHEQUING" account for "Liam Fortin"

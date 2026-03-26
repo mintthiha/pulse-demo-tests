@@ -34,6 +34,12 @@ Feature: Account Management
     And the account type badge shows "CHEQUING"
     And the available balance shows "$0.00"
 
+  Scenario: Balance bar chart appears after creating multiple accounts
+    Given the user is on the dashboard
+    When the user creates a "CHEQUING" account for "Noah Bergeron"
+    And the user creates a "SAVINGS" account for "Olivia Tremblay"
+    Then the account balances chart is visible
+
   Scenario: Account page has back navigation
     Given the user is on the dashboard
     And a "CHEQUING" account exists for "David Lavoie"
