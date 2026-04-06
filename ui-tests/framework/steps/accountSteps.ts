@@ -31,7 +31,7 @@ Given("a {string} account exists for {string}", async function (this: BloomWorld
   await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS");
 
   // Grab the account ID from the href of the most recently created account row link
-  const accountRow = this.page.getByRole("link", { name: new RegExp(name) }).first();
+  const accountRow = dashboard.accountRow(name);
   const href = await accountRow.getAttribute("href");
   this.accountIds[name] = href?.split("/account/")[1] ?? "";
 });
@@ -72,7 +72,8 @@ Then("the header shows {string}", async function (this: BloomWorld, text: string
  * Asserts an account row link with the given owner name is visible on the dashboard.
  */
 Then("an account row for {string} is visible", async function (this: BloomWorld, name: string) {
-  await expect(this.page.getByRole("link", { name: new RegExp(name) }).first()).toBeVisible();
+  const dashboard = new DashboardPage(this.page);
+  await expect(dashboard.accountRow(name)).toBeVisible();
 });
 
 /**

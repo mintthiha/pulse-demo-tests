@@ -4,6 +4,7 @@ import config.ApiConfig;
 import context.ScenarioContext;
 import io.cucumber.java.en.*;
 import io.restassured.RestAssured;
+import io.restassured.specification.RequestSpecification;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
@@ -116,8 +117,7 @@ public class TransactionSteps {
     public void theTransactionHistoryIsFetched() {
         String id = ctx.getString("accountId");
         Response response = RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
+            .given(baseRequest())
             .when()
                 .get(ApiConfig.ACCOUNTS_PATH + "/" + id + "/transactions")
             .then()
@@ -146,9 +146,7 @@ public class TransactionSteps {
         body.put("amount", amount);
         if (description != null) body.put("description", description);
         return RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
-                .contentType(ContentType.JSON)
+            .given(baseRequest())
                 .body(body)
             .when()
                 .post(ApiConfig.ACCOUNTS_PATH + "/" + accountId + "/deposit")
@@ -169,9 +167,7 @@ public class TransactionSteps {
         body.put("amount", amount);
         if (description != null) body.put("description", description);
         return RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
-                .contentType(ContentType.JSON)
+            .given(baseRequest())
                 .body(body)
             .when()
                 .post(ApiConfig.ACCOUNTS_PATH + "/" + accountId + "/withdraw")
@@ -194,13 +190,19 @@ public class TransactionSteps {
         body.put("amount", amount);
         if (description != null) body.put("description", description);
         return RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
-                .contentType(ContentType.JSON)
+            .given(baseRequest())
                 .body(body)
             .when()
                 .post(ApiConfig.ACCOUNTS_PATH + "/" + fromId + "/transfer")
             .then()
                 .extract().response();
+    }
+
+    private RequestSpecification baseRequest() {
+        return RestAssured
+            .given()
+                .baseUri(ApiConfig.BASE_URL)
+                .contentType(ContentType.JSON)
+                .header("X-User-Id", ctx.getUserId());
     }
 }

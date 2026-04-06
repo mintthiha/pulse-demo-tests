@@ -3,6 +3,8 @@ import { Page, Locator, expect } from "@playwright/test";
 export class AccountPage {
   readonly page: Page;
   readonly amountInput: Locator;
+  readonly categorySelect: Locator;
+  readonly customCategoryInput: Locator;
   readonly descriptionInput: Locator;
   readonly analyticsPanel: Locator;
   readonly balanceHistoryChart: Locator;
@@ -16,6 +18,8 @@ export class AccountPage {
   constructor(page: Page) {
     this.page = page;
     this.amountInput = page.locator('input[type="number"]');
+    this.categorySelect = page.locator("form select").first();
+    this.customCategoryInput = page.getByPlaceholder("Enter custom category");
     this.descriptionInput = page.getByPlaceholder("Description (optional)");
     this.analyticsPanel = page.getByText("Analytics");
     this.balanceHistoryChart = page.getByText("Balance History");
@@ -44,7 +48,10 @@ export class AccountPage {
   async deposit(amount: number, description?: string) {
     await this.selectOperation("deposit");
     await this.amountInput.fill(String(amount));
-    if (description) await this.descriptionInput.fill(description);
+    if (description) {
+      await this.categorySelect.selectOption("Custom...");
+      await this.customCategoryInput.fill(description);
+    }
     await this.page.getByRole("button", { name: /^Deposit$/i }).last().click();
     await expect(this.page.getByText(/Deposit successful/i)).toBeVisible();
   }
@@ -58,7 +65,10 @@ export class AccountPage {
   async withdraw(amount: number, description?: string) {
     await this.selectOperation("withdraw");
     await this.amountInput.fill(String(amount));
-    if (description) await this.descriptionInput.fill(description);
+    if (description) {
+      await this.categorySelect.selectOption("Custom...");
+      await this.customCategoryInput.fill(description);
+    }
     await this.page.getByRole("button", { name: /^Withdraw$/i }).last().click();
     await expect(this.page.getByText(/Withdraw successful/i)).toBeVisible();
   }

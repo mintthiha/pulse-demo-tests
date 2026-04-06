@@ -3,11 +3,13 @@ package context;
 import io.restassured.response.Response;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class ScenarioContext {
 
     private final Map<String, Object> data = new HashMap<>();
     private Response lastResponse;
+    private final String userId = "api-test-" + UUID.randomUUID();
 
     public void set(String key, Object value) {
         data.put(key, value);
@@ -28,5 +30,9 @@ public class ScenarioContext {
 
     public Response getLastResponse() {
         return lastResponse;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 }

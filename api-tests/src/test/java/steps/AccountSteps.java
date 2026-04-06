@@ -4,6 +4,7 @@ import config.ApiConfig;
 import context.ScenarioContext;
 import io.cucumber.java.en.*;
 import io.restassured.RestAssured;
+import io.restassured.specification.RequestSpecification;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
@@ -70,6 +71,7 @@ public class AccountSteps {
             .given()
                 .baseUri(ApiConfig.BASE_URL)
                 .contentType(ContentType.JSON)
+                .header("X-User-Id", ctx.getUserId())
             .when()
                 .patch(ApiConfig.ACCOUNTS_PATH + "/" + id + "/freeze")
             .then()
@@ -117,9 +119,7 @@ public class AccountSteps {
         body.put("accountType", "CHEQUING");
 
         Response response = RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
-                .contentType(ContentType.JSON)
+            .given(baseRequest())
                 .body(body)
             .when()
                 .post(ApiConfig.ACCOUNTS_PATH)
@@ -137,8 +137,7 @@ public class AccountSteps {
     public void theAccountIsFetchedById() {
         String id = ctx.getString("accountId");
         Response response = RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
+            .given(baseRequest())
             .when()
                 .get(ApiConfig.ACCOUNTS_PATH + "/" + id)
             .then()
@@ -153,8 +152,7 @@ public class AccountSteps {
     @When("account {string} is fetched")
     public void accountIsFetched(String id) {
         Response response = RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
+            .given(baseRequest())
             .when()
                 .get(ApiConfig.ACCOUNTS_PATH + "/" + id)
             .then()
@@ -169,8 +167,7 @@ public class AccountSteps {
     @When("all accounts are listed")
     public void allAccountsAreListed() {
         Response response = RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
+            .given(baseRequest())
             .when()
                 .get(ApiConfig.ACCOUNTS_PATH)
             .then()
@@ -186,9 +183,7 @@ public class AccountSteps {
     public void theAccountIsFrozen() {
         String id = ctx.getString("accountId");
         Response response = RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
-                .contentType(ContentType.JSON)
+            .given(baseRequest())
             .when()
                 .patch(ApiConfig.ACCOUNTS_PATH + "/" + id + "/freeze")
             .then()
@@ -204,9 +199,7 @@ public class AccountSteps {
     public void theAccountIsUnfrozen() {
         String id = ctx.getString("accountId");
         Response response = RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
-                .contentType(ContentType.JSON)
+            .given(baseRequest())
             .when()
                 .patch(ApiConfig.ACCOUNTS_PATH + "/" + id + "/unfreeze")
             .then()
@@ -301,13 +294,19 @@ public class AccountSteps {
         body.put("accountType", accountType);
 
         return RestAssured
-            .given()
-                .baseUri(ApiConfig.BASE_URL)
-                .contentType(ContentType.JSON)
+            .given(baseRequest())
                 .body(body)
             .when()
                 .post(ApiConfig.ACCOUNTS_PATH)
             .then()
                 .extract().response();
+    }
+
+    private RequestSpecification baseRequest() {
+        return RestAssured
+            .given()
+                .baseUri(ApiConfig.BASE_URL)
+                .contentType(ContentType.JSON)
+                .header("X-User-Id", ctx.getUserId());
     }
 }

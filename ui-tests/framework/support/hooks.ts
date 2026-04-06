@@ -1,6 +1,7 @@
 import { Before, After, ITestCaseHookParameter, setDefaultTimeout } from "@cucumber/cucumber";
 import { chromium } from "@playwright/test";
 import { BloomWorld } from "./world";
+import { buildTestUser, createSessionCookie } from "./auth";
 
 setDefaultTimeout(15000);
 
@@ -13,8 +14,20 @@ const BASE_URL = process.env.BLOOM_UI_URL || "http://localhost:3000";
  */
 Before(async function (this: BloomWorld, scenario: ITestCaseHookParameter) {
   const headed = (this.parameters as Record<string, boolean>)?.headed ?? false;
+  const testUser = buildTestUser(scenario.pickle.name);
+  const isUnauthenticated = scenario.pickle.tags.some((tag) => tag.name === "@Unauthenticated");
+
   this.browser = await chromium.launch({ headless: !headed });
   this.context = await this.browser.newContext({ baseURL: BASE_URL });
+  if (!isUnauthenticated) {
+    await this.context.addCookies([
+      await createSessionCookie(BASE_URL, {
+        sub: testUser.id,
+        name: testUser.name,
+        email: testUser.email,
+      }),
+    ]);
+  }
   this.page = await this.context.newPage();
 });
 

@@ -2,10 +2,10 @@
 Feature: Account Management
 
   @Smoke
-  Scenario: Dashboard loads with Bloom branding
+  Scenario: Dashboard loads with the current app shell
     Given the user is on the dashboard
     Then the page title contains "Bloom"
-    And the header shows "Bloom"
+    And the header shows "All systems operational"
 
   @Smoke
   Scenario: Create a chequing account
