@@ -44,6 +44,13 @@ public class TransactionSteps {
         assertThat(response.statusCode(), is(200));
     }
 
+    @Given("{double} is deposited into the account with category {string}")
+    public void isDepositedWithCategory(double amount, String category) {
+        String id = ctx.getString("accountId");
+        Response response = deposit(id, amount, category, null);
+        assertThat(response.statusCode(), is(200));
+    }
+
     /**
      * Withdraws the given amount with a description from the current account as a silent precondition.
      * Asserts that the withdrawal succeeds with a 200 response.
@@ -52,6 +59,13 @@ public class TransactionSteps {
     public void isWithdrawnWithDescription(double amount, String description) {
         String id = ctx.getString("accountId");
         Response response = withdraw(id, amount, description);
+        assertThat(response.statusCode(), is(200));
+    }
+
+    @Given("{double} is withdrawn from the account with category {string}")
+    public void isWithdrawnWithCategory(double amount, String category) {
+        String id = ctx.getString("accountId");
+        Response response = withdraw(id, amount, category, null);
         assertThat(response.statusCode(), is(200));
     }
 
@@ -133,6 +147,12 @@ public class TransactionSteps {
         assertThat(ctx.getLastResponse().jsonPath().getList("$").size(), is(expectedCount));
     }
 
+    @Then("at least one transaction has category {string}")
+    public void atLeastOneTransactionHasCategory(String expectedCategory) {
+        java.util.List<String> categories = ctx.getLastResponse().jsonPath().getList("category");
+        assertThat(categories, hasItem(expectedCategory));
+    }
+
     /**
      * Helper method that sends a POST request to deposit an amount into an account.
      *
@@ -142,8 +162,13 @@ public class TransactionSteps {
      * @return the raw REST Assured response
      */
     private Response deposit(String accountId, double amount, String description) {
+        return deposit(accountId, amount, null, description);
+    }
+
+    private Response deposit(String accountId, double amount, String category, String description) {
         Map<String, Object> body = new HashMap<>();
         body.put("amount", amount);
+        if (category != null) body.put("category", category);
         if (description != null) body.put("description", description);
         return RestAssured
             .given(baseRequest())
@@ -163,8 +188,13 @@ public class TransactionSteps {
      * @return the raw REST Assured response
      */
     private Response withdraw(String accountId, double amount, String description) {
+        return withdraw(accountId, amount, null, description);
+    }
+
+    private Response withdraw(String accountId, double amount, String category, String description) {
         Map<String, Object> body = new HashMap<>();
         body.put("amount", amount);
+        if (category != null) body.put("category", category);
         if (description != null) body.put("description", description);
         return RestAssured
             .given(baseRequest())

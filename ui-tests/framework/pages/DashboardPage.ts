@@ -6,6 +6,11 @@ export class DashboardPage {
   readonly ownerNameInput: Locator;
   readonly openButton: Locator;
   readonly accountTypeSelect: Locator;
+  readonly monthlySnapshotPanel: Locator;
+  readonly budgetsPanel: Locator;
+  readonly budgetCategorySelect: Locator;
+  readonly budgetLimitInput: Locator;
+  readonly saveBudgetButton: Locator;
   readonly balancesChart: Locator;
   readonly onboardingHeading: Locator;
   readonly firstNameInput: Locator;
@@ -21,6 +26,11 @@ export class DashboardPage {
     this.ownerNameInput = page.getByPlaceholder("Account holder name");
     this.openButton = page.getByRole("button", { name: "Open", exact: true });
     this.accountTypeSelect = page.getByLabel("Account type");
+    this.monthlySnapshotPanel = page.getByText("Monthly Snapshot").locator("..");
+    this.budgetsPanel = page.getByText("Budgets").locator("..");
+    this.budgetCategorySelect = page.getByLabel("Budget category");
+    this.budgetLimitInput = page.getByPlaceholder("Monthly limit");
+    this.saveBudgetButton = page.getByRole("button", { name: "Save Budget" });
     this.balancesChart = page.getByText("Account Balances");
     this.onboardingHeading = page.getByRole("heading", { name: "Create your profile" });
     this.firstNameInput = page.getByPlaceholder("Your first name");
@@ -33,6 +43,13 @@ export class DashboardPage {
 
   accountRow(text: string) {
     return this.page.locator('a[href^="/account/"]').filter({ hasText: text }).first();
+  }
+
+  budgetRow(category: string) {
+    return this.page
+      .locator("div")
+      .filter({ has: this.page.getByText(category, { exact: true }), hasText: "used" })
+      .last();
   }
 
   /** Navigates to the dashboard root URL. */
@@ -59,6 +76,11 @@ export class DashboardPage {
       this.page.waitForResponse(
         (response) =>
           response.url().includes("/api/bloom/accounts") &&
+          response.request().method() === "GET"
+      ),
+      this.page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/bloom/accounts/summary/monthly") &&
           response.request().method() === "GET"
       ),
     ]);
@@ -124,6 +146,42 @@ export class DashboardPage {
       this.openButton.click({ force: true }),
     ]);
     await expect(this.accountRow(ownerName)).toBeVisible();
+  }
+
+  async saveBudget(category: string, monthlyLimit: number) {
+    await this.budgetCategorySelect.selectOption({ label: category });
+    await this.budgetLimitInput.fill(String(monthlyLimit));
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/bloom/budgets") &&
+          response.request().method() === "PUT" &&
+          response.ok()
+      ),
+      this.saveBudgetButton.click(),
+    ]);
+    await this.page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/bloom/budgets") &&
+        response.request().method() === "GET" &&
+        response.ok()
+    );
+    await expect(this.budgetRow(category)).toBeVisible();
+  }
+
+  async deleteBudget(category: string) {
+    const row = this.budgetRow(category);
+    await expect(row).toBeVisible();
+    await row.getByRole("button", { name: "Delete" }).click();
+    await expect(row).not.toBeVisible();
+  }
+
+  async chooseSingleDashboardView() {
+    await this.page.getByTitle("Single column").click();
+  }
+
+  async chooseDoubleDashboardView() {
+    await this.page.getByTitle("Two columns").click();
   }
 
   /** Clicks the first matching account row text to navigate to the account detail page. */

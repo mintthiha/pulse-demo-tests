@@ -21,6 +21,11 @@ When("the user deposits {int} with description {string}", async function (this: 
   await accountPage.deposit(amount, description);
 });
 
+When("the user deposits {int} with category {string}", async function (this: BloomWorld, amount: number, category: string) {
+  const accountPage = new AccountPage(this.page);
+  await accountPage.deposit(amount, category);
+});
+
 /**
  * Withdraws the given amount from the current account.
  * Waits for the success message before proceeding.
@@ -39,6 +44,11 @@ When("the user withdraws {int} with description {string}", async function (this:
   await accountPage.withdraw(amount, description);
 });
 
+When("the user withdraws {int} with category {string}", async function (this: BloomWorld, amount: number, category: string) {
+  const accountPage = new AccountPage(this.page);
+  await accountPage.withdraw(amount, category);
+});
+
 /**
  * Attempts a withdrawal without waiting for success.
  * Used in negative scenarios where we expect an error message.
@@ -51,14 +61,11 @@ When("the user attempts to withdraw {int}", async function (this: BloomWorld, am
 });
 
 /**
- * Transfers the given amount to another account identified by owner name.
- * Looks up the destination account ID from BloomWorld.accountIds,
- * which was populated when the destination account was created via the Given step.
+ * Transfers the given amount to another account selected by visible account name.
  */
 When("the user transfers {int} to {string}'s account", async function (this: BloomWorld, amount: number, name: string) {
   const accountPage = new AccountPage(this.page);
-  const toId = this.accountIds[name] ?? "";
-  await accountPage.transfer(toId, amount);
+  await accountPage.transfer(name, amount);
 });
 
 /**
@@ -82,6 +89,10 @@ Then("the transaction history shows {int} records", async function (this: BloomW
  */
 Then("the transaction description {string} is visible", async function (this: BloomWorld, description: string) {
   await expect(this.page.getByText(description)).toBeVisible();
+});
+
+Then("the transaction category {string} is visible", async function (this: BloomWorld, category: string) {
+  await expect(this.page.locator("span").getByText(category, { exact: true })).toBeVisible();
 });
 
 /**

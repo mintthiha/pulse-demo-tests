@@ -15,6 +15,13 @@ Feature: Account Management
     And the account row shows type "CHEQUING"
 
   @Smoke
+  Scenario: Create account with nickname
+    Given the user is on the dashboard
+    When the user creates a "CHEQUING" account called "Rent Money" for "Alice Martin"
+    Then an account row for "Rent Money" is visible
+    And the account row for "Rent Money" shows owner "Alice Martin"
+
+  @Smoke
   Scenario: Create a savings account
     Given the user is on the dashboard
     When the user creates a "SAVINGS" account for "Bob Tremblay"
@@ -46,3 +53,10 @@ Feature: Account Management
     When the user opens the account for "David Lavoie"
     And the user navigates back to accounts
     Then the user should be back on the dashboard
+
+  Scenario: Edit account nickname on account detail page
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Nina Patel"
+    When the user opens the account for "Nina Patel"
+    And the user changes the account nickname to "Travel Fund"
+    Then the account heading shows "Travel Fund"

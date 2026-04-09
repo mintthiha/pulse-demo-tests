@@ -207,6 +207,33 @@ public class AccountSteps {
         ctx.setLastResponse(response);
     }
 
+    @When("the account nickname is updated to {string}")
+    public void theAccountNicknameIsUpdatedTo(String nickname) {
+        String id = ctx.getString("accountId");
+        Map<String, String> body = new HashMap<>();
+        body.put("nickname", nickname);
+
+        Response response = RestAssured
+            .given(baseRequest())
+                .body(body)
+            .when()
+                .patch(ApiConfig.ACCOUNTS_PATH + "/" + id + "/nickname")
+            .then()
+                .extract().response();
+        ctx.setLastResponse(response);
+    }
+
+    @When("the monthly summary is fetched")
+    public void theMonthlySummaryIsFetched() {
+        Response response = RestAssured
+            .given(baseRequest())
+            .when()
+                .get(ApiConfig.ACCOUNTS_PATH + "/summary/monthly")
+            .then()
+                .extract().response();
+        ctx.setLastResponse(response);
+    }
+
     /**
      * Asserts that the HTTP status code of the last response matches the expected value.
      */
@@ -253,6 +280,36 @@ public class AccountSteps {
     @Then("the account is now frozen")
     public void theAccountIsFrozenAssertion() {
         assertThat(ctx.getLastResponse().jsonPath().getBoolean("frozen"), is(true));
+    }
+
+    @Then("the account nickname is {string}")
+    public void theAccountNicknameIs(String expectedNickname) {
+        assertThat(ctx.getLastResponse().jsonPath().getString("nickname"), is(expectedNickname));
+    }
+
+    @Then("the monthly summary income is {double}")
+    public void theMonthlySummaryIncomeIs(double expectedIncome) {
+        assertThat(ctx.getLastResponse().jsonPath().getDouble("income"), is(expectedIncome));
+    }
+
+    @Then("the monthly summary spending is {double}")
+    public void theMonthlySummarySpendingIs(double expectedSpending) {
+        assertThat(ctx.getLastResponse().jsonPath().getDouble("spending"), is(expectedSpending));
+    }
+
+    @Then("the monthly summary net cash flow is {double}")
+    public void theMonthlySummaryNetCashFlowIs(double expectedNetCashFlow) {
+        assertThat(ctx.getLastResponse().jsonPath().getDouble("netCashFlow"), is(expectedNetCashFlow));
+    }
+
+    @Then("the monthly summary includes category {string} with spending {double}")
+    public void theMonthlySummaryIncludesCategoryWithSpending(String category, double spending) {
+        java.util.List<Map<String, Object>> categories = ctx.getLastResponse().jsonPath().getList("categories");
+        boolean match = categories.stream().anyMatch(item ->
+            category.equals(item.get("category")) &&
+            Double.compare(((Number) item.get("spending")).doubleValue(), spending) == 0
+        );
+        assertThat("Expected category spending was not found", match, is(true));
     }
 
     /**

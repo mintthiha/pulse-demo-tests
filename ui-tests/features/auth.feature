@@ -15,3 +15,9 @@ Feature: Authentication Entry Flows
   Scenario: Signed-in returning user sees the dashboard
     Given the signed-in user has completed onboarding
     Then the dashboard greeting is visible
+
+  @Smoke
+  Scenario: Saving onboarding profile opens personalized dashboard
+    Given the user visits the home page
+    When the user completes onboarding with first name "Priya"
+    Then the dashboard greeting says "Good morning, Priya."

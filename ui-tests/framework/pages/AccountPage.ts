@@ -4,8 +4,10 @@ export class AccountPage {
   readonly page: Page;
   readonly amountInput: Locator;
   readonly categorySelect: Locator;
+  readonly destinationAccountSelect: Locator;
   readonly customCategoryInput: Locator;
   readonly descriptionInput: Locator;
+  readonly nicknameInput: Locator;
   readonly analyticsPanel: Locator;
   readonly balanceHistoryChart: Locator;
   readonly transactionTypeChart: Locator;
@@ -19,8 +21,10 @@ export class AccountPage {
     this.page = page;
     this.amountInput = page.locator('input[type="number"]');
     this.categorySelect = page.locator("form select").first();
+    this.destinationAccountSelect = page.getByLabel("Destination account");
     this.customCategoryInput = page.getByPlaceholder("Enter custom category");
     this.descriptionInput = page.getByPlaceholder("Description (optional)");
+    this.nicknameInput = page.getByPlaceholder("Optional nickname");
     this.analyticsPanel = page.getByText("Analytics");
     this.balanceHistoryChart = page.getByText("Balance History");
     this.transactionTypeChart = page.getByText("Transaction Types");
@@ -43,14 +47,13 @@ export class AccountPage {
    * Performs a deposit and waits for the success message.
    *
    * @param amount      the amount to deposit
-   * @param description optional description to attach to the transaction
+   * @param category optional category to attach to the transaction
    */
-  async deposit(amount: number, description?: string) {
+  async deposit(amount: number, category?: string) {
     await this.selectOperation("deposit");
     await this.amountInput.fill(String(amount));
-    if (description) {
-      await this.categorySelect.selectOption("Custom...");
-      await this.customCategoryInput.fill(description);
+    if (category) {
+      await this.selectCategory(category);
     }
     await this.page.getByRole("button", { name: /^Deposit$/i }).last().click();
     await expect(this.page.getByText(/Deposit successful/i)).toBeVisible();
@@ -60,33 +63,59 @@ export class AccountPage {
    * Performs a withdrawal and waits for the success message.
    *
    * @param amount      the amount to withdraw
-   * @param description optional description to attach to the transaction
+   * @param category optional category to attach to the transaction
    */
-  async withdraw(amount: number, description?: string) {
+  async withdraw(amount: number, category?: string) {
     await this.selectOperation("withdraw");
     await this.amountInput.fill(String(amount));
-    if (description) {
-      await this.categorySelect.selectOption("Custom...");
-      await this.customCategoryInput.fill(description);
+    if (category) {
+      await this.selectCategory(category);
     }
     await this.page.getByRole("button", { name: /^Withdraw$/i }).last().click();
     await expect(this.page.getByText(/Withdraw successful/i)).toBeVisible();
   }
 
   /**
-   * Performs a transfer to the given account ID and waits for the success message.
+   * Performs a transfer to the destination account whose option text contains the given label.
    *
-   * @param toAccountId the destination account ID
+   * @param destinationAccountLabel text displayed in the destination account picker
    * @param amount      the amount to transfer
    * @param description optional description to attach to the transaction
    */
-  async transfer(toAccountId: string, amount: number, description?: string) {
+  async transfer(destinationAccountLabel: string, amount: number, description?: string) {
     await this.selectOperation("transfer");
-    await this.page.getByPlaceholder("Destination account ID").fill(toAccountId);
+    const destinationOption = this.destinationAccountSelect
+      .locator("option")
+      .filter({ hasText: destinationAccountLabel })
+      .first();
+    const destinationValue = await destinationOption.getAttribute("value");
+    if (!destinationValue) {
+      throw new Error(`Destination account option not found: ${destinationAccountLabel}`);
+    }
+    await this.destinationAccountSelect.selectOption(destinationValue);
     await this.amountInput.fill(String(amount));
     if (description) await this.descriptionInput.fill(description);
     await this.page.getByRole("button", { name: /^Transfer$/i }).last().click();
     await expect(this.page.getByText(/Transfer successful/i)).toBeVisible();
+  }
+
+  /** Selects an existing category option, or uses the Custom flow for free-form categories. */
+  async selectCategory(category: string) {
+    const matchingOption = this.categorySelect.locator("option", { hasText: category }).first();
+    if (await matchingOption.count()) {
+      await this.categorySelect.selectOption({ label: category });
+      return;
+    }
+
+    await this.categorySelect.selectOption("Custom...");
+    await this.customCategoryInput.fill(category);
+  }
+
+  async updateNickname(nickname: string) {
+    await this.page.getByRole("button", { name: "Edit" }).click();
+    await this.nicknameInput.fill(nickname);
+    await this.page.getByRole("button", { name: "Save" }).click();
+    await expect(this.page.getByRole("heading", { name: nickname })).toBeVisible();
   }
 
   /**

@@ -51,6 +51,16 @@ Feature: Transactions
     And the user deposits 500 with description "Salary payment"
     Then the transaction description "Salary payment" is visible
 
+  @Smoke
+  Scenario: Transaction category appears in history
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Maya Singh"
+    When the user opens the account for "Maya Singh"
+    And the user deposits 900 with category "Salary"
+    And the user withdraws 120 with category "Groceries"
+    Then the transaction category "Salary" is visible
+    And the transaction category "Groceries" is visible
+
   Scenario: Analytics panel appears after a transaction
     Given the user is on the dashboard
     And a "CHEQUING" account exists for "Nathan Beaulieu"
@@ -73,3 +83,25 @@ Feature: Transactions
     And the user creates a "SAVINGS" account for "Marie Lefebvre"
     Then the stats section shows "Chequing"
     And the stats section shows "Savings"
+
+  @Smoke
+  Scenario: Monthly snapshot summarizes income and categorized spending
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Sofia Santos"
+    When the user opens the account for "Sofia Santos"
+    And the user deposits 1000 with category "Salary"
+    And the user withdraws 200 with category "Groceries"
+    And the user returns to the dashboard
+    Then the monthly snapshot is visible
+    And the monthly snapshot shows income "$1,000.00", spending "$200.00", and net "$800.00"
+    And the monthly snapshot shows spending category "Groceries"
+
+  Scenario: Transfers are excluded from monthly income and spending
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Source Holder"
+    And a "CHEQUING" account exists for "Target Holder"
+    When the user opens the account for "Source Holder"
+    And the user deposits 1000 with category "Salary"
+    And the user transfers 250 to "Target Holder"'s account
+    And the user returns to the dashboard
+    Then the monthly snapshot shows income "$1,000.00", spending "$0.00", and net "$1,000.00"

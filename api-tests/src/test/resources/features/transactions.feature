@@ -70,6 +70,17 @@ Feature: Account Transactions
     Then the response status is 200
     And there are 2 transactions
 
+  @Transactions @Smoke
+  Scenario: Transaction category is recorded in history
+    Given a chequing account exists for "Category Api User"
+    And 700.00 is deposited into the account with category "Salary"
+    And 80.00 is withdrawn from the account with category "Groceries"
+    When the transaction history is fetched
+    Then the response status is 200
+    And there are 2 transactions
+    And at least one transaction has category "Salary"
+    And at least one transaction has category "Groceries"
+
   @Transactions @RiskManagement
   Scenario: Frozen account rejects a deposit
     Given a frozen chequing account exists for "Nathan Beaulieu"

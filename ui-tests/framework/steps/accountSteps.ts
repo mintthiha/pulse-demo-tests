@@ -36,6 +36,16 @@ Given("a {string} account exists for {string}", async function (this: BloomWorld
   this.accountIds[name] = href?.split("/account/")[1] ?? "";
 });
 
+When("the user creates a {string} account called {string} for {string}", async function (
+  this: BloomWorld,
+  type: string,
+  nickname: string,
+  ownerName: string
+) {
+  const dashboard = new DashboardPage(this.page);
+  await dashboard.createAccount(ownerName, type as "CHEQUING" | "SAVINGS", nickname);
+});
+
 /**
  * Clicks an account row on the dashboard and waits for navigation to the account detail page.
  */
@@ -51,6 +61,18 @@ When("the user opens the account for {string}", async function (this: BloomWorld
 When("the user navigates back to accounts", async function (this: BloomWorld) {
   const accountPage = new AccountPage(this.page);
   await accountPage.goBack();
+});
+
+When("the user returns to the dashboard", async function (this: BloomWorld) {
+  const accountPage = new AccountPage(this.page);
+  await accountPage.goBack();
+  const dashboard = new DashboardPage(this.page);
+  await dashboard.goto();
+});
+
+When("the user changes the account nickname to {string}", async function (this: BloomWorld, nickname: string) {
+  const accountPage = new AccountPage(this.page);
+  await accountPage.updateNickname(nickname);
 });
 
 /**
@@ -74,6 +96,17 @@ Then("the header shows {string}", async function (this: BloomWorld, text: string
 Then("an account row for {string} is visible", async function (this: BloomWorld, name: string) {
   const dashboard = new DashboardPage(this.page);
   await expect(dashboard.accountRow(name)).toBeVisible();
+});
+
+Then("the account row for {string} shows owner {string}", async function (
+  this: BloomWorld,
+  nickname: string,
+  ownerName: string
+) {
+  const dashboard = new DashboardPage(this.page);
+  const row = dashboard.accountRow(nickname);
+  await expect(row).toBeVisible();
+  await expect(row.getByText(ownerName)).toBeVisible();
 });
 
 /**

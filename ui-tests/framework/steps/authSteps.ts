@@ -1,4 +1,4 @@
-import { Given, Then } from "@cucumber/cucumber";
+import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import { BloomWorld } from "../support/world";
 import { DashboardPage } from "../pages/DashboardPage";
@@ -32,4 +32,13 @@ Then("the dashboard greeting is visible", async function (this: BloomWorld) {
   const dashboard = new DashboardPage(this.page);
   await expect(dashboard.greetingHeading).toBeVisible();
   await expect(dashboard.ownerNameInput).toBeVisible();
+});
+
+When("the user completes onboarding with first name {string}", async function (this: BloomWorld, firstName: string) {
+  const dashboard = new DashboardPage(this.page);
+  await dashboard.completeOnboarding(firstName, "Automation");
+});
+
+Then("the dashboard greeting says {string}", async function (this: BloomWorld, greeting: string) {
+  await expect(this.page.getByRole("heading", { name: greeting })).toBeVisible();
 });
