@@ -16,6 +16,7 @@ Before(async function (this: BloomWorld, scenario: ITestCaseHookParameter) {
   const headed = (this.parameters as Record<string, boolean>)?.headed ?? false;
   const testUser = buildTestUser(scenario.pickle.name);
   const isUnauthenticated = scenario.pickle.tags.some((tag) => tag.name === "@Unauthenticated");
+  this.testUser = testUser;
 
   this.browser = await chromium.launch({ headless: !headed });
   this.context = await this.browser.newContext({ baseURL: BASE_URL });

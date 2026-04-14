@@ -32,3 +32,20 @@ Feature: Dashboard Insights
     Then the "Dining" budget shows "$250.00" spent of "$100.00"
     And the "Dining" budget shows "$150.00" over budget
     And the "Dining" budget shows 250% used
+
+  @Smoke
+  Scenario: Budget detail page shows monthly activity breakdown
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Budget Detail Owner"
+    When the user opens the account for "Budget Detail Owner"
+    And the user deposits 1000 with category "Salary"
+    And the user withdraws 80 with category "Dining"
+    And the user withdraws 25 with category "Dining"
+    And the user returns to the dashboard
+    And the user saves a "Dining" budget with a monthly limit of 200
+    And the user opens the "Dining" budget details
+    Then the budget detail heading shows "Dining"
+    And the budget detail sections are visible
+    And the budget detail shows limit "$200.00", spent "$105.00", remaining "$95.00", and usage "53%"
+    And the budget detail shows account "Budget Detail Owner"
+    And the budget detail shows 2 transaction

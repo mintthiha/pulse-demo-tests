@@ -19,7 +19,7 @@ Given("the user is on the dashboard", async function (this: BloomWorld) {
  */
 When("the user creates a {string} account for {string}", async function (this: BloomWorld, type: string, name: string) {
   const dashboard = new DashboardPage(this.page);
-  await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS");
+  await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT");
 });
 
 /**
@@ -28,7 +28,7 @@ When("the user creates a {string} account for {string}", async function (this: B
  */
 Given("a {string} account exists for {string}", async function (this: BloomWorld, type: string, name: string) {
   const dashboard = new DashboardPage(this.page);
-  await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS");
+  await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT");
 
   // Grab the account ID from the href of the most recently created account row link
   const accountRow = dashboard.accountRow(name);
@@ -43,7 +43,11 @@ When("the user creates a {string} account called {string} for {string}", async f
   ownerName: string
 ) {
   const dashboard = new DashboardPage(this.page);
-  await dashboard.createAccount(ownerName, type as "CHEQUING" | "SAVINGS", nickname);
+  await dashboard.createAccount(
+    ownerName,
+    type as "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT",
+    nickname
+  );
 });
 
 /**
@@ -114,8 +118,17 @@ Then("the account row for {string} shows owner {string}", async function (
  * Scoped to span to avoid matching the type toggle buttons or stats section.
  */
 Then("the account row shows type {string}", async function (this: BloomWorld, type: string) {
-  const accountRow = this.page.getByRole("link", { name: new RegExp(type) }).first();
-  await expect(accountRow.locator("span").getByText(type)).toBeVisible();
+  const typeLabelMap: Record<string, string> = {
+    CHEQUING: "Chequing",
+    SAVINGS: "Savings",
+    TFSA: "TFSA",
+    RRSP: "RRSP",
+    FHSA: "FHSA",
+    CREDIT: "Credit",
+  };
+
+  const expectedLabel = typeLabelMap[type] ?? type;
+  await expect(this.page.getByText(expectedLabel, { exact: true }).first()).toBeVisible();
 });
 
 /**
@@ -131,6 +144,11 @@ Then("the open button is disabled", async function (this: BloomWorld) {
  */
 Then("the account heading shows {string}", async function (this: BloomWorld, name: string) {
   await expect(this.page.getByRole("heading", { name })).toBeVisible();
+});
+
+Then("the account nickname section shows {string}", async function (this: BloomWorld, nickname: string) {
+  const section = this.page.getByText("Account Nickname", { exact: true }).locator("../..");
+  await expect(section.getByText(nickname, { exact: true })).toBeVisible();
 });
 
 /**

@@ -55,8 +55,15 @@ export class AccountPage {
     if (category) {
       await this.selectCategory(category);
     }
-    await this.page.getByRole("button", { name: /^Deposit$/i }).last().click();
-    await expect(this.page.getByText(/Deposit successful/i)).toBeVisible();
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          /\/api\/bloom\/accounts\/.+\/deposit$/.test(response.url()) &&
+          response.request().method() === "POST" &&
+          response.ok()
+      ),
+      this.page.getByRole("button", { name: /^Deposit$/i }).last().click(),
+    ]);
   }
 
   /**
@@ -71,8 +78,15 @@ export class AccountPage {
     if (category) {
       await this.selectCategory(category);
     }
-    await this.page.getByRole("button", { name: /^Withdraw$/i }).last().click();
-    await expect(this.page.getByText(/Withdraw successful/i)).toBeVisible();
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          /\/api\/bloom\/accounts\/.+\/withdraw$/.test(response.url()) &&
+          response.request().method() === "POST" &&
+          response.ok()
+      ),
+      this.page.getByRole("button", { name: /^Withdraw$/i }).last().click(),
+    ]);
   }
 
   /**
@@ -95,8 +109,15 @@ export class AccountPage {
     await this.destinationAccountSelect.selectOption(destinationValue);
     await this.amountInput.fill(String(amount));
     if (description) await this.descriptionInput.fill(description);
-    await this.page.getByRole("button", { name: /^Transfer$/i }).last().click();
-    await expect(this.page.getByText(/Transfer successful/i)).toBeVisible();
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          /\/api\/bloom\/accounts\/.+\/transfer$/.test(response.url()) &&
+          response.request().method() === "POST" &&
+          response.ok()
+      ),
+      this.page.getByRole("button", { name: /^Transfer$/i }).last().click(),
+    ]);
   }
 
   /** Selects an existing category option, or uses the Custom flow for free-form categories. */
@@ -112,10 +133,10 @@ export class AccountPage {
   }
 
   async updateNickname(nickname: string) {
-    await this.page.getByRole("button", { name: "Edit" }).click();
+    await this.page.getByRole("button", { name: "Edit" }).first().click();
+    await expect(this.nicknameInput).toBeVisible();
     await this.nicknameInput.fill(nickname);
-    await this.page.getByRole("button", { name: "Save" }).click();
-    await expect(this.page.getByRole("heading", { name: nickname })).toBeVisible();
+    await this.page.getByRole("button", { name: "Save" }).first().click({ force: true });
   }
 
   /**

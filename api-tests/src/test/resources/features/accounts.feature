@@ -19,6 +19,21 @@ Feature: Account Management
     And the account balance is 0.0
 
   @Accounts
+  Scenario Outline: Create all supported account types
+    When a "<type>" account is created for "<owner>"
+    Then the response status is 201
+    And the account owner is "<owner>"
+    And the account type is "<type>"
+    And the account balance is 0.0
+
+    Examples:
+      | type   | owner             |
+      | TFSA   | Taylor Investor   |
+      | RRSP   | Riley Retirement  |
+      | FHSA   | Frankie Home      |
+      | CREDIT | Casey Cardholder  |
+
+  @Accounts
   Scenario: Cannot create account without an owner name
     When an account is created with an empty owner name
     Then the response status is 400

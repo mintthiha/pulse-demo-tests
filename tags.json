@@ -13,10 +13,34 @@
       "description": "Marks all Playwright UI tests"
     },
     {
+      "name": "Auth",
+      "value": "@Auth",
+      "category": "feature",
+      "description": "Tests related to authentication and onboarding"
+    },
+    {
       "name": "Accounts",
       "value": "@Accounts",
       "category": "feature",
       "description": "Tests related to account creation and retrieval"
+    },
+    {
+      "name": "Dashboard",
+      "value": "@Dashboard",
+      "category": "feature",
+      "description": "Tests related to dashboard panels, navigation, and layout"
+    },
+    {
+      "name": "Profile",
+      "value": "@Profile",
+      "category": "feature",
+      "description": "Tests related to profile onboarding and editing"
+    },
+    {
+      "name": "Budgets",
+      "value": "@Budgets",
+      "category": "feature",
+      "description": "Tests related to category budgets and budget details"
     },
     {
       "name": "Transactions",

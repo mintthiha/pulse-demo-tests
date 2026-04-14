@@ -101,8 +101,7 @@ Then("the transaction category {string} is visible", async function (this: Bloom
  * matching the same text elsewhere on the page.
  */
 Then("the stats section shows {string}", async function (this: BloomWorld, label: string) {
-  const statsSection = this.page.getByText("Total Balance").locator("../..");
-  await expect(statsSection.getByText(label)).toBeVisible();
+  await expect(this.page.getByRole("button", { name: new RegExp(`^${label}`) })).toBeVisible();
 });
 
 /**

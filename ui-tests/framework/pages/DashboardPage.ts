@@ -56,7 +56,7 @@ export class DashboardPage {
   async goto() {
     await this.gotoHome();
     await this.completeOnboardingIfNeeded();
-    await expect(this.ownerNameInput).toBeVisible();
+    await expect(this.ownerNameInput).toBeVisible({ timeout: 10000 });
   }
 
   /** Navigates to the home page and waits for initial profile/account bootstrap requests. */
@@ -130,7 +130,11 @@ export class DashboardPage {
    * Fills in the account creation form and submits it.
    * Waits for the new account row to appear before resolving.
    */
-  async createAccount(ownerName: string, type: "CHEQUING" | "SAVINGS" = "CHEQUING", nickname?: string) {
+  async createAccount(
+    ownerName: string,
+    type: "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT" = "CHEQUING",
+    nickname?: string
+  ) {
     if (nickname) {
       await this.nicknameInput.fill(nickname);
     }

@@ -14,19 +14,32 @@ Feature: Account Management
     Then an account row for "Alice Martin" is visible
     And the account row shows type "CHEQUING"
 
-  @Smoke
+  @Smoke @Create
   Scenario: Create account with nickname
     Given the user is on the dashboard
     When the user creates a "CHEQUING" account called "Rent Money" for "Alice Martin"
     Then an account row for "Rent Money" is visible
     And the account row for "Rent Money" shows owner "Alice Martin"
 
-  @Smoke
+  @Smoke @Saving @Account
   Scenario: Create a savings account
     Given the user is on the dashboard
     When the user creates a "SAVINGS" account for "Bob Tremblay"
     Then an account row for "Bob Tremblay" is visible
     And the account row shows type "SAVINGS"
+
+  @Smoke
+  Scenario Outline: Create additional supported account types
+    Given the user is on the dashboard
+    When the user creates a "<type>" account for "<owner>"
+    Then an account row for "<owner>" is visible
+
+    Examples:
+      | type   | owner            |
+      | TFSA   | Taylor Investor  |
+      | RRSP   | Riley Retirement |
+      | FHSA   | Frankie Home     |
+      | CREDIT | Casey Card       |
 
   Scenario: Cannot create account with empty name
     Given the user is on the dashboard
@@ -59,4 +72,6 @@ Feature: Account Management
     And a "CHEQUING" account exists for "Nina Patel"
     When the user opens the account for "Nina Patel"
     And the user changes the account nickname to "Travel Fund"
-    Then the account heading shows "Travel Fund"
+    When the user navigates back to accounts
+    Then an account row for "Travel Fund" is visible
+    And the account row for "Travel Fund" shows owner "Nina Patel"

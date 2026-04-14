@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 
 public class ProfileSteps {
 
@@ -62,6 +61,49 @@ public class ProfileSteps {
         theProfileIsSavedWith(firstName, lastName, username, email);
     }
 
+    @When("another user saves a profile with username {string}")
+    public void anotherUserSavesAProfileWithUsername(String username) {
+        String base = username.toLowerCase().replaceAll("[^a-z0-9_]", "");
+        if (base.length() > 15) {
+            base = base.substring(0, 15);
+        }
+        String uniqueUsername = base + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 4);
+        Map<String, String> body = new HashMap<>();
+        body.put("firstName", "Other");
+        body.put("lastName", "User");
+        body.put("username", uniqueUsername);
+        body.put("email", uniqueUsername + "@example.com");
+
+        Response response = RestAssured
+            .given(baseRequest("api-test-" + UUID.randomUUID()))
+                .body(body)
+            .when()
+                .put(ApiConfig.PROFILE_PATH)
+            .then()
+                .extract().response();
+        ctx.set("duplicateSeedUsername", uniqueUsername);
+        ctx.setLastResponse(response);
+    }
+
+    @When("the current user attempts to save a duplicate username")
+    public void theCurrentUserAttemptsToSaveADuplicateUsername() {
+        String username = ctx.getString("duplicateSeedUsername");
+        Map<String, String> body = new HashMap<>();
+        body.put("firstName", "Current");
+        body.put("lastName", "User");
+        body.put("username", username);
+        body.put("email", "current." + username + "@example.com");
+
+        Response response = RestAssured
+            .given(baseRequest())
+                .body(body)
+            .when()
+                .put(ApiConfig.PROFILE_PATH)
+            .then()
+                .extract().response();
+        ctx.setLastResponse(response);
+    }
+
     @Then("the profile response is null")
     public void theProfileResponseIsNull() {
         assertThat(ctx.getLastResponse().asString(), is("null"));
@@ -83,10 +125,14 @@ public class ProfileSteps {
     }
 
     private RequestSpecification baseRequest() {
+        return baseRequest(ctx.getUserId());
+    }
+
+    private RequestSpecification baseRequest(String userId) {
         return RestAssured
             .given()
                 .baseUri(ApiConfig.BASE_URL)
                 .contentType(ContentType.JSON)
-                .header("X-User-Id", ctx.getUserId());
+                .header("X-User-Id", userId);
     }
 }

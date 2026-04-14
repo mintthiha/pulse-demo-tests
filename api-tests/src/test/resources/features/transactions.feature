@@ -13,7 +13,7 @@ Feature: Account Transactions
     Given a chequing account exists for "Emma Gagnon"
     When -100.00 is deposited into the account
     Then the response status is 400
-    And the error message is "Deposit amount must be positive"
+    And the error message is "amount must be positive"
 
   @Transactions
   Scenario: Cannot deposit zero

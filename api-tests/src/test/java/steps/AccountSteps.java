@@ -108,6 +108,15 @@ public class AccountSteps {
         }
     }
 
+    @When("a {string} account is created for {string}")
+    public void anArbitraryAccountIsCreatedFor(String accountType, String ownerName) {
+        Response response = createAccount(ownerName, accountType);
+        ctx.setLastResponse(response);
+        if (response.statusCode() == 201) {
+            ctx.set("accountId", response.jsonPath().getString("id"));
+        }
+    }
+
     /**
      * Sends a POST request to create an account with an empty ownerName field.
      * Used to verify that the API rejects missing owner names with a 400 error.

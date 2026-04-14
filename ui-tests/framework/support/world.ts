@@ -11,6 +11,17 @@ export class BloomWorld extends World {
   context!: BrowserContext;
   page!: Page;
   accountIds: Record<string, string> = {};
+  testUser!: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  savedProfile?: {
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+  };
 
 
   constructor(options: IWorldOptions) {

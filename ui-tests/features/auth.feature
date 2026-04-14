@@ -10,6 +10,7 @@ Feature: Authentication Entry Flows
   Scenario: Signed-in first-time user sees onboarding
     Given the user visits the home page
     Then the onboarding screen is visible
+    And the onboarding form is prefilled from the Google session
 
   @Smoke
   Scenario: Signed-in returning user sees the dashboard
