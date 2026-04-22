@@ -9,6 +9,7 @@ public class ApiConfig {
     public static final String ACCOUNTS_PATH = "/api/accounts";
     public static final String BUDGETS_PATH = "/api/budgets";
     public static final String PROFILE_PATH = "/api/profile";
+    public static final String RECURRING_PATH = "/api/recurring";
 
     private ApiConfig() {}
 }

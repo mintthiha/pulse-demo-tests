@@ -19,6 +19,18 @@ export class DashboardPage {
   readonly emailInput: Locator;
   readonly continueToBloomButton: Locator;
   readonly greetingHeading: Locator;
+  readonly recurringRuleNameInput: Locator;
+  readonly recurringAccountSelect: Locator;
+  readonly recurringTypeSelect: Locator;
+  readonly recurringAmountInput: Locator;
+  readonly recurringFrequencySelect: Locator;
+  readonly recurringCategorySelect: Locator;
+  readonly recurringStartDateInput: Locator;
+  readonly recurringEndDateInput: Locator;
+  readonly recurringDescriptionInput: Locator;
+  readonly saveRecurringRuleButton: Locator;
+  readonly applyDueRecurringButton: Locator;
+  readonly cancelRecurringEditButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -39,6 +51,18 @@ export class DashboardPage {
     this.emailInput = page.getByPlaceholder("you@example.com");
     this.continueToBloomButton = page.getByRole("button", { name: "Continue to Bloom" });
     this.greetingHeading = page.getByRole("heading", { name: /Good morning/i });
+    this.recurringRuleNameInput = page.getByLabel("Recurring rule name");
+    this.recurringAccountSelect = page.getByLabel("Recurring account");
+    this.recurringTypeSelect = page.getByLabel("Recurring transaction type");
+    this.recurringAmountInput = page.getByPlaceholder("Amount");
+    this.recurringFrequencySelect = page.getByLabel("Recurring frequency");
+    this.recurringCategorySelect = page.getByLabel("Recurring category");
+    this.recurringStartDateInput = page.getByLabel("Recurring start date");
+    this.recurringEndDateInput = page.getByLabel("Recurring end date");
+    this.recurringDescriptionInput = page.getByPlaceholder("Description (optional)");
+    this.saveRecurringRuleButton = page.getByRole("button", { name: "Save rule" });
+    this.applyDueRecurringButton = page.getByRole("button", { name: /^Apply due/ });
+    this.cancelRecurringEditButton = page.getByRole("button", { name: "Cancel edit" });
   }
 
   accountRow(text: string) {
@@ -50,6 +74,10 @@ export class DashboardPage {
       .locator("div")
       .filter({ has: this.page.getByText(category, { exact: true }), hasText: "used" })
       .last();
+  }
+
+  recurringRuleCard(name: string) {
+    return this.page.locator("div").filter({ hasText: name }).filter({ hasText: "Next run" }).last();
   }
 
   /** Navigates to the dashboard root URL. */
@@ -178,6 +206,105 @@ export class DashboardPage {
     await expect(row).toBeVisible();
     await row.getByRole("button", { name: "Delete" }).click();
     await expect(row).not.toBeVisible();
+  }
+
+  async saveRecurringRule(input: {
+    name: string;
+    account: string;
+    type: "Deposit" | "Withdrawal";
+    amount: number;
+    frequency: "Weekly" | "Biweekly" | "Monthly";
+    category: string;
+    startDate: string;
+    description?: string;
+    endDate?: string;
+    editing?: boolean;
+  }) {
+    await this.recurringRuleNameInput.fill(input.name);
+    await this.recurringAccountSelect.selectOption({ label: input.account });
+    await this.recurringTypeSelect.selectOption({ label: input.type });
+    await this.recurringAmountInput.fill(String(input.amount));
+    await this.recurringFrequencySelect.selectOption({ label: input.frequency });
+    await this.recurringCategorySelect.selectOption({ label: input.category });
+    await this.recurringStartDateInput.fill(input.startDate);
+    if (input.endDate) {
+      await this.recurringEndDateInput.fill(input.endDate);
+    }
+    if (input.description) {
+      await this.recurringDescriptionInput.fill(input.description);
+    }
+
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/bloom/recurring") &&
+          response.request().method() === (input.editing ? "PUT" : "POST") &&
+          response.ok()
+      ),
+      this.page.getByRole("button", { name: input.editing ? "Save changes" : "Save rule" }).click(),
+    ]);
+
+    await expect(this.recurringRuleCard(input.name)).toBeVisible();
+  }
+
+  async openRecurringEdit(name: string) {
+    await this.recurringRuleCard(name).getByRole("button", { name: "Edit" }).click();
+    await expect(this.page.getByText(`Editing recurring rule: ${name}`)).toBeVisible();
+    await expect(this.cancelRecurringEditButton).toBeVisible();
+    await expect(this.page.getByRole("button", { name: "Save changes" })).toBeVisible();
+  }
+
+  async cancelRecurringEdit() {
+    await this.cancelRecurringEditButton.click();
+    await expect(this.page.getByRole("button", { name: "Save rule" })).toBeVisible();
+  }
+
+  async setRecurringRulePaused(name: string, paused: boolean) {
+    const buttonName = paused ? "Pause" : "Resume";
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          /\/api\/bloom\/recurring\/[^/]+$/.test(response.url()) &&
+          response.request().method() === "PATCH" &&
+          response.ok()
+      ),
+      this.recurringRuleCard(name).getByRole("button", { name: buttonName }).click(),
+    ]);
+  }
+
+  async deleteRecurringRule(name: string, confirm: boolean) {
+    await this.recurringRuleCard(name).getByRole("button", { name: "Delete" }).click();
+    const dialog = this.page.getByRole("alertdialog").or(this.page.getByRole("dialog"));
+    await expect(this.page.getByText(`Delete recurring rule "${name}"?`)).toBeVisible();
+
+    if (!confirm) {
+      await this.page.getByRole("button", { name: "Cancel" }).click();
+      await expect(this.recurringRuleCard(name)).toBeVisible();
+      return;
+    }
+
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          /\/api\/bloom\/recurring\/[^/]+$/.test(response.url()) &&
+          response.request().method() === "DELETE" &&
+          response.status() === 204
+      ),
+      dialog.getByRole("button", { name: "Delete" }).click(),
+    ]);
+    await expect(this.recurringRuleCard(name)).not.toBeVisible();
+  }
+
+  async applyDueRecurringRules() {
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/bloom/recurring/apply-due") &&
+          response.request().method() === "POST" &&
+          response.ok()
+      ),
+      this.applyDueRecurringButton.click(),
+    ]);
   }
 
   async chooseSingleDashboardView() {

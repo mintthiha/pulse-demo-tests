@@ -43,6 +43,42 @@
       "description": "Tests related to category budgets and budget details"
     },
     {
+      "name": "RecurringTransactions",
+      "value": "@Recurring_Transactions",
+      "category": "feature",
+      "description": "Tests related to recurring deposit and withdrawal rules"
+    },
+    {
+      "name": "RecurringCreate",
+      "value": "@Recurring_Create",
+      "category": "feature",
+      "description": "Tests related to creating recurring transaction rules"
+    },
+    {
+      "name": "RecurringEdit",
+      "value": "@Recurring_Edit",
+      "category": "feature",
+      "description": "Tests related to editing recurring transaction rules"
+    },
+    {
+      "name": "RecurringDelete",
+      "value": "@Recurring_Delete",
+      "category": "feature",
+      "description": "Tests related to deleting recurring transaction rules"
+    },
+    {
+      "name": "RecurringApplyDue",
+      "value": "@Recurring_Apply_Due",
+      "category": "feature",
+      "description": "Tests related to manually applying due recurring transactions"
+    },
+    {
+      "name": "RecurringPauseResume",
+      "value": "@Recurring_Pause_Resume",
+      "category": "feature",
+      "description": "Tests related to pausing and resuming recurring transaction rules"
+    },
+    {
       "name": "Transactions",
       "value": "@Transactions",
       "category": "feature",
