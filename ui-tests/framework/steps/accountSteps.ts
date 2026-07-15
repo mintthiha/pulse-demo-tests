@@ -114,6 +114,26 @@ Then("the account row for {string} shows owner {string}", async function (
 });
 
 /**
+ * Asserts a Sonner confirmation toast with the given message is shown.
+ * Covers the "Account opened" toast fired after a successful account creation.
+ */
+Then("a confirmation toast {string} is shown", async function (this: BloomWorld, message: string) {
+  await expect(this.page.getByText(message, { exact: true })).toBeVisible();
+});
+
+/**
+ * Asserts the account row is scrolled into and intersects the viewport.
+ * Covers the auto-scroll that reveals a newly created account at the bottom of the list.
+ */
+Then("the account row for {string} is visible in the viewport", async function (
+  this: BloomWorld,
+  name: string
+) {
+  const dashboard = new DashboardPage(this.page);
+  await expect(dashboard.accountRow(name)).toBeInViewport();
+});
+
+/**
  * Asserts the account type badge (span element) inside the account row shows the correct type.
  * Scoped to span to avoid matching the type toggle buttons or stats section.
  */

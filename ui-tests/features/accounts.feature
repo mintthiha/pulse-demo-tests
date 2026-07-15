@@ -21,6 +21,13 @@ Feature: Account Management
     Then an account row for "Rent Money" is visible
     And the account row for "Rent Money" shows owner "Alice Martin"
 
+  @Create
+  Scenario: Creating an account confirms with a toast and reveals the new row
+    Given the user is on the dashboard
+    When the user creates a "SAVINGS" account for "Grace Hopper"
+    Then a confirmation toast "Account opened" is shown
+    And the account row for "Grace Hopper" is visible in the viewport
+
   @Smoke @Saving @Account
   Scenario: Create a savings account
     Given the user is on the dashboard
