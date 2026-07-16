@@ -28,9 +28,17 @@ Then("the monthly snapshot shows income {string}, spending {string}, and net {st
   spending: string,
   net: string
 ) {
-  await expect(this.page.getByText("Income").locator("..").getByText(income)).toBeVisible();
-  await expect(this.page.getByText("Spending").locator("..").getByText(spending)).toBeVisible();
-  await expect(this.page.getByText("Net").locator("..").getByText(net)).toBeVisible();
+  // Match labels and values exactly so the "+$X vs prior" delta line and cards like
+  // "Net Worth" don't cause strict-mode multiple-element matches.
+  await expect(
+    this.page.getByText("Income", { exact: true }).locator("..").getByText(income, { exact: true })
+  ).toBeVisible();
+  await expect(
+    this.page.getByText("Spending", { exact: true }).locator("..").getByText(spending, { exact: true })
+  ).toBeVisible();
+  await expect(
+    this.page.getByText("Net", { exact: true }).locator("..").getByText(net, { exact: true })
+  ).toBeVisible();
 });
 
 Then("the monthly snapshot shows spending category {string}", async function (this: BloomWorld, category: string) {

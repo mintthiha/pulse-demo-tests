@@ -164,9 +164,9 @@ export class AccountPage {
     await expect(this.freezeButton).toBeVisible();
   }
 
-  /** Clicks the back link and waits for navigation to the dashboard. */
+  /** Clicks the "Back to Home" link and waits for navigation to the dashboard. */
   async goBack() {
-    await this.page.getByRole("link", { name: /Accounts/i }).click();
+    await this.page.getByRole("link", { name: /Back to Home/i }).first().click();
     await this.page.waitForURL("/");
   }
 }

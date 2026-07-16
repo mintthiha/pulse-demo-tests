@@ -97,5 +97,7 @@ Then("the budget detail shows {int} transaction", async function (this: BloomWor
 Then("the budget detail sections are visible", async function (this: BloomWorld) {
   await expect(this.page.getByText("Daily Spending", { exact: true })).toBeVisible();
   await expect(this.page.getByText("By Account", { exact: true })).toBeVisible();
-  await expect(this.page.getByText("Transactions", { exact: true })).toBeVisible();
+  // Scope to the section heading paragraph so the sidebar's "Transactions" nav link
+  // doesn't cause a strict-mode multiple-element match.
+  await expect(this.page.getByRole("paragraph").filter({ hasText: /^Transactions$/ })).toBeVisible();
 });

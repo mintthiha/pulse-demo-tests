@@ -180,7 +180,7 @@ Then("the recurring rule name validation error is visible", async function (this
 });
 
 Then("the recurring edit mode is visible for {string}", async function (this: BloomWorld, name: string) {
-  await expect(this.page.getByText(`Editing recurring rule: ${name}`)).toBeVisible();
+  await expect(this.page.getByText(`Editing: ${name}`)).toBeVisible();
   await expect(this.page.getByRole("button", { name: "Cancel edit" })).toBeVisible();
   await expect(this.page.getByRole("button", { name: "Save changes" })).toBeVisible();
 });

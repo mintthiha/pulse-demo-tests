@@ -50,7 +50,7 @@ export class DashboardPage {
     this.usernameInput = page.getByPlaceholder("unique_username");
     this.emailInput = page.getByPlaceholder("you@example.com");
     this.continueToBloomButton = page.getByRole("button", { name: "Continue to Bloom" });
-    this.greetingHeading = page.getByRole("heading", { name: /Good morning/i });
+    this.greetingHeading = page.getByRole("heading", { name: /Good (morning|afternoon|evening)/i });
     this.recurringRuleNameInput = page.getByLabel("Recurring rule name");
     this.recurringAccountSelect = page.getByLabel("Recurring account");
     this.recurringTypeSelect = page.getByLabel("Recurring transaction type");
@@ -89,13 +89,10 @@ export class DashboardPage {
 
   /** Navigates to the home page and waits for initial profile/account bootstrap requests. */
   async gotoHome() {
-    await this.page.goto("/");
-
-    if (/\/login(?:\?|$)/.test(this.page.url())) {
-      return;
-    }
-
-    await Promise.all([
+    // Attach the response waiters BEFORE navigating. On a warm second navigation
+    // (e.g. returning to the dashboard) the bootstrap GETs can resolve before a
+    // post-goto waiter would attach, causing it to hang until timeout.
+    const bootstrapResponses = Promise.all([
       this.page.waitForResponse(
         (response) =>
           response.url().includes("/api/bloom/profile") &&
@@ -112,6 +109,17 @@ export class DashboardPage {
           response.request().method() === "GET"
       ),
     ]);
+
+    await this.page.goto("/");
+
+    if (/\/login(?:\?|$)/.test(this.page.url())) {
+      // Unauthenticated: the dashboard bootstrap GETs never fire. Swallow the
+      // pending waiters so they don't surface as unhandled timeout rejections.
+      bootstrapResponses.catch(() => {});
+      return;
+    }
+
+    await bootstrapResponses;
   }
 
   /**
@@ -249,7 +257,7 @@ export class DashboardPage {
 
   async openRecurringEdit(name: string) {
     await this.recurringRuleCard(name).getByRole("button", { name: "Edit" }).click();
-    await expect(this.page.getByText(`Editing recurring rule: ${name}`)).toBeVisible();
+    await expect(this.page.getByText(`Editing: ${name}`)).toBeVisible();
     await expect(this.cancelRecurringEditButton).toBeVisible();
     await expect(this.page.getByRole("button", { name: "Save changes" })).toBeVisible();
   }

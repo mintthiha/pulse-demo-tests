@@ -40,5 +40,12 @@ When("the user completes onboarding with first name {string}", async function (t
 });
 
 Then("the dashboard greeting says {string}", async function (this: BloomWorld, greeting: string) {
-  await expect(this.page.getByRole("heading", { name: greeting })).toBeVisible();
+  // The time-of-day prefix (morning/afternoon/evening) depends on when the suite runs,
+  // so match the greeting regardless of which prefix the app rendered.
+  const escaped = greeting.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(
+    "^" + escaped.replace(/Good morning/i, "Good (morning|afternoon|evening)") + "$",
+    "i"
+  );
+  await expect(this.page.getByRole("heading", { name: pattern })).toBeVisible();
 });
