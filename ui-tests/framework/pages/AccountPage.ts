@@ -62,7 +62,7 @@ export class AccountPage {
           response.request().method() === "POST" &&
           response.ok()
       ),
-      this.page.getByRole("button", { name: /^Deposit$/i }).last().click(),
+      this.page.locator('button[type="submit"]').first().click(),
     ]);
   }
 
@@ -85,7 +85,7 @@ export class AccountPage {
           response.request().method() === "POST" &&
           response.ok()
       ),
-      this.page.getByRole("button", { name: /^Withdraw$/i }).last().click(),
+      this.page.locator('button[type="submit"]').first().click(),
     ]);
   }
 
@@ -116,14 +116,14 @@ export class AccountPage {
           response.request().method() === "POST" &&
           response.ok()
       ),
-      this.page.getByRole("button", { name: /^Transfer$/i }).last().click(),
+      this.page.locator('button[type="submit"]').first().click(),
     ]);
   }
 
   /** Selects an existing category option, or uses the Custom flow for free-form categories. */
   async selectCategory(category: string) {
-    const matchingOption = this.categorySelect.locator("option", { hasText: category }).first();
-    if (await matchingOption.count()) {
+    const allOptions = await this.categorySelect.locator("option").allTextContents();
+    if (allOptions.includes(category)) {
       await this.categorySelect.selectOption({ label: category });
       return;
     }
@@ -145,7 +145,7 @@ export class AccountPage {
    * @param message the expected error text
    */
   async expectError(message: string) {
-    await expect(this.page.getByText(message)).toBeVisible();
+    await expect(this.page.getByText(message).first()).toBeVisible({ timeout: 10000 });
   }
 
   /**

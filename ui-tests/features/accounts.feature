@@ -5,7 +5,7 @@ Feature: Account Management
   Scenario: Dashboard loads with the current app shell
     Given the user is on the dashboard
     Then the page title contains "Bloom"
-    And the header shows "All systems operational"
+    And the header shows "Search transactions…"
 
   @Smoke
   Scenario: Create a chequing account
@@ -82,3 +82,18 @@ Feature: Account Management
     When the user navigates back to accounts
     Then an account row for "Travel Fund" is visible
     And the account row for "Travel Fund" shows owner "Nina Patel"
+
+  Scenario: Delete account removes it from the dashboard
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Delete Me"
+    When the user opens the account for "Delete Me"
+    And the user deletes the account
+    Then the user should be back on the dashboard
+    And the account row for "Delete Me" is not visible
+
+  Scenario: Cancel account deletion keeps the account
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Keep Me"
+    When the user opens the account for "Keep Me"
+    And the user cancels account deletion
+    Then the account heading shows "Keep Me"

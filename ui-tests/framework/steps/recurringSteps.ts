@@ -69,6 +69,7 @@ When(
 
 When("the user attempts to save a recurring rule without a name", async function (this: BloomWorld) {
   const dashboard = new DashboardPage(this.page);
+  await dashboard.openNewRecurringForm();
   await dashboard.recurringAccountSelect.selectOption({ index: 1 });
   await dashboard.recurringAmountInput.fill("100");
   await dashboard.recurringStartDateInput.fill(futureDate(10));

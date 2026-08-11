@@ -96,6 +96,23 @@ Feature: Transactions
     And the monthly snapshot shows income "$1,000.00", spending "$200.00", and net "$800.00"
     And the monthly snapshot shows spending category "Groceries"
 
+  Scenario: Delete a transaction updates the account balance
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Del Trans User"
+    When the user opens the account for "Del Trans User"
+    And the user deposits 600 with description "Big pay"
+    And the user deposits 200 with description "Bonus"
+    And the user deletes the transaction "Big pay"
+    Then the available balance shows "$200.00"
+
+  Scenario: Cancel transaction deletion keeps the transaction
+    Given the user is on the dashboard
+    And a "CHEQUING" account exists for "Keep Trans User"
+    When the user opens the account for "Keep Trans User"
+    And the user deposits 300 with description "Keep me"
+    And the user cancels transaction deletion for "Keep me"
+    Then the transaction description "Keep me" is visible
+
   Scenario: Transfers are excluded from monthly income and spending
     Given the user is on the dashboard
     And a "CHEQUING" account exists for "Source Holder"

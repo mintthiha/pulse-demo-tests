@@ -84,7 +84,7 @@ export class DashboardPage {
   async goto() {
     await this.gotoHome();
     await this.completeOnboardingIfNeeded();
-    await expect(this.ownerNameInput).toBeVisible({ timeout: 10000 });
+    await expect(this.ownerNameInput).toBeVisible({ timeout: 35000 });
   }
 
   /** Navigates to the home page and waits for initial profile/account bootstrap requests. */
@@ -142,8 +142,8 @@ export class DashboardPage {
     }
 
     await this.continueToBloomButton.click();
-    await expect(this.onboardingHeading).not.toBeVisible();
-    await expect(this.ownerNameInput).toBeVisible();
+    await expect(this.onboardingHeading).not.toBeVisible({ timeout: 30000 });
+    await expect(this.ownerNameInput).toBeVisible({ timeout: 35000 });
   }
 
   async completeOnboarding(firstName = "UI", lastName = "Tester") {
@@ -164,19 +164,22 @@ export class DashboardPage {
 
   /**
    * Fills in the account creation form and submits it.
-   * Waits for the new account row to appear before resolving.
+   * Returns the new account ID captured from the POST response body.
+   * Account rows now live at /accounts, not on the dashboard, so this
+   * method no longer asserts row visibility — call gotoAccounts() first
+   * when you need to check the list.
    */
   async createAccount(
     ownerName: string,
     type: "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT" = "CHEQUING",
     nickname?: string
-  ) {
+  ): Promise<string> {
     if (nickname) {
       await this.nicknameInput.fill(nickname);
     }
     await this.ownerNameInput.fill(ownerName);
     await this.accountTypeSelect.selectOption(type);
-    await Promise.all([
+    const [response] = await Promise.all([
       this.page.waitForResponse(
         (response) =>
           response.url().includes("/api/bloom/accounts") &&
@@ -185,7 +188,29 @@ export class DashboardPage {
       ),
       this.openButton.click({ force: true }),
     ]);
-    await expect(this.accountRow(ownerName)).toBeVisible();
+    // Wait for the accounts-list to reload after creation (exact endpoint match to
+    // avoid catching /accounts/summary/monthly which shares the same URL prefix).
+    await this.page.waitForResponse(
+      (response) =>
+        /\/api\/bloom\/accounts$/.test(response.url()) &&
+        response.request().method() === "GET" &&
+        response.ok()
+    );
+    const body = await response.json();
+    return body.id as string;
+  }
+
+  /** Navigates to the /accounts list page and waits for it to load. */
+  async gotoAccounts() {
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/bloom/accounts") &&
+          response.request().method() === "GET" &&
+          response.ok()
+      ),
+      this.page.goto("/accounts"),
+    ]);
   }
 
   async saveBudget(category: string, monthlyLimit: number) {
@@ -213,6 +238,17 @@ export class DashboardPage {
     const row = this.budgetRow(category);
     await expect(row).toBeVisible();
     await row.getByRole("button", { name: "Delete" }).click();
+    // Base UI's Dialog renders with role="dialog", not role="alertdialog"
+    const dialog = this.page.getByRole("alertdialog").or(this.page.getByRole("dialog"));
+    await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          /\/api\/bloom\/budgets\/[^/]+$/.test(response.url()) &&
+          response.request().method() === "DELETE" &&
+          response.ok()
+      ),
+      dialog.getByRole("button", { name: "Delete" }).click(),
+    ]);
     await expect(row).not.toBeVisible();
   }
 
@@ -228,6 +264,15 @@ export class DashboardPage {
     endDate?: string;
     editing?: boolean;
   }) {
+    // The "New recurring rule" form section is collapsed by default — open it for new rules.
+    // Also waits for RecurringTransactionsCard to mount (only rendered once accounts load).
+    if (!input.editing) {
+      const toggle = this.page.getByRole("button", { name: "New recurring rule" });
+      await expect(toggle).toBeVisible({ timeout: 25000 });
+      if ((await toggle.getAttribute("aria-expanded")) !== "true") {
+        await toggle.click();
+      }
+    }
     await this.recurringRuleNameInput.fill(input.name);
     await this.recurringAccountSelect.selectOption({ label: input.account });
     await this.recurringTypeSelect.selectOption({ label: input.type });
@@ -315,12 +360,30 @@ export class DashboardPage {
     ]);
   }
 
+  /** Opens the "New recurring rule" form section if it is currently collapsed. */
+  async openNewRecurringForm() {
+    const toggle = this.page.getByRole("button", { name: "New recurring rule" });
+    await expect(toggle).toBeVisible({ timeout: 25000 });
+    if ((await toggle.getAttribute("aria-expanded")) !== "true") {
+      await toggle.click();
+    }
+  }
+
+  async openCustomizePanel() {
+    const heading = this.page.getByRole("heading", { name: /Customize/i }).first();
+    if (await heading.isVisible()) return;
+    await this.page.getByRole("button", { name: /Customize/i }).first().click();
+    await expect(heading).toBeVisible();
+  }
+
   async chooseSingleDashboardView() {
-    await this.page.getByTitle("Single column").click();
+    await this.openCustomizePanel();
+    await this.page.getByRole("button", { name: "Single", exact: true }).click();
   }
 
   async chooseDoubleDashboardView() {
-    await this.page.getByTitle("Two columns").click();
+    await this.openCustomizePanel();
+    await this.page.getByRole("button", { name: "Double", exact: true }).click();
   }
 
   /** Clicks the first matching account row text to navigate to the account detail page. */

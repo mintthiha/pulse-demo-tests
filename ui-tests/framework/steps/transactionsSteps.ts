@@ -57,7 +57,7 @@ When("the user attempts to withdraw {int}", async function (this: BloomWorld, am
   const accountPage = new AccountPage(this.page);
   await accountPage.selectOperation("withdraw");
   await accountPage.amountInput.fill(String(amount));
-  await this.page.getByRole("button", { name: /^Withdraw$/i }).last().click();
+  await this.page.locator('button[type="submit"]').first().click();
 });
 
 /**
@@ -93,6 +93,35 @@ Then("the transaction description {string} is visible", async function (this: Bl
 
 Then("the transaction category {string} is visible", async function (this: BloomWorld, category: string) {
   await expect(this.page.locator("span").getByText(category, { exact: true })).toBeVisible();
+});
+
+When("the user deletes the transaction {string}", async function (this: BloomWorld, description: string) {
+  const row = this.page.locator("div").filter({ hasText: description }).filter({
+    has: this.page.getByRole("button", { name: "Delete" }),
+  }).last();
+  await row.getByRole("button", { name: "Delete" }).click();
+  const dialog = this.page.getByRole("alertdialog").or(this.page.getByRole("dialog"));
+  await expect(dialog.getByText("Delete transaction?")).toBeVisible();
+  await Promise.all([
+    this.page.waitForResponse(
+      (response) =>
+        /\/api\/bloom\/accounts\/[^/]+\/transactions\/[^/]+$/.test(response.url()) &&
+        response.request().method() === "DELETE" &&
+        (response.status() === 200 || response.status() === 204)
+    ),
+    dialog.getByRole("button", { name: "Delete" }).click(),
+  ]);
+});
+
+When("the user cancels transaction deletion for {string}", async function (this: BloomWorld, description: string) {
+  const row = this.page.locator("div").filter({ hasText: description }).filter({
+    has: this.page.getByRole("button", { name: "Delete" }),
+  }).last();
+  await row.getByRole("button", { name: "Delete" }).click();
+  const dialog = this.page.getByRole("alertdialog").or(this.page.getByRole("dialog"));
+  await expect(dialog.getByText("Delete transaction?")).toBeVisible();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).not.toBeVisible();
 });
 
 /**

@@ -19,21 +19,65 @@ Given("the user is on the dashboard", async function (this: BloomWorld) {
  */
 When("the user creates a {string} account for {string}", async function (this: BloomWorld, type: string, name: string) {
   const dashboard = new DashboardPage(this.page);
-  await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT");
+  const accountId = await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT");
+  this.accountIds[name] = accountId;
 });
 
 /**
  * Creates an account and stores its ID in BloomWorld.accountIds.
- * Used in scenarios where a later step needs to reference this account (e.g. transfers).
+ * The ID is captured from the POST response body, since account rows
+ * now live at /accounts rather than on the dashboard.
  */
 Given("a {string} account exists for {string}", async function (this: BloomWorld, type: string, name: string) {
   const dashboard = new DashboardPage(this.page);
-  await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT");
-
-  // Grab the account ID from the href of the most recently created account row link
-  const accountRow = dashboard.accountRow(name);
-  const href = await accountRow.getAttribute("href");
-  this.accountIds[name] = href?.split("/account/")[1] ?? "";
+  // Register waiters for the second loadAccounts() *before* clicking Open.
+  // onCreated fires after POST /accounts → loadAccounts() fires 6–7 parallel
+  // API calls → setAccounts() only after ALL complete.
+  // createAccount() waits for GET /api/bloom/accounts (exact URL, no subdirs).
+  // We cover the remaining calls here.
+  //
+  // Registration order matters: Playwright delivers each matching response to
+  // the first registered handler. The hard waiter (#1) must be registered
+  // before the optional race (#2) so that monthly(current) is caught by #1
+  // and monthly(previous) — if it fires — is caught by #2. If there is no
+  // previous range query, #2's 5 s timeout wins the race instead.
+  const firstMonthly = this.page.waitForResponse(
+    (r) => r.url().includes("/api/bloom/accounts/summary/monthly") && r.request().method() === "GET",
+    { timeout: 55000 }
+  );
+  const secondMonthlyOrTimeout = Promise.race([
+    this.page.waitForResponse(
+      (r) => r.url().includes("/api/bloom/accounts/summary/monthly") && r.request().method() === "GET",
+      { timeout: 55000 }
+    ),
+    new Promise<void>((resolve) => setTimeout(resolve, 5000)),
+  ]);
+  const loadAccountsSettled = Promise.all([
+    firstMonthly,
+    secondMonthlyOrTimeout,
+    this.page.waitForResponse(
+      (r) => r.url().includes("/api/bloom/savings-goals") && r.request().method() === "GET",
+      { timeout: 55000 }
+    ),
+    this.page.waitForResponse(
+      (r) => r.url().includes("/api/bloom/budgets") && r.request().method() === "GET",
+      { timeout: 55000 }
+    ),
+    this.page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/bloom/recurring") &&
+        r.request().method() === "GET" &&
+        !r.url().includes("/apply-due"),
+      { timeout: 55000 }
+    ),
+    this.page.waitForResponse(
+      (r) => r.url().includes("/api/bloom/accounts/summary/trends") && r.request().method() === "GET",
+      { timeout: 55000 }
+    ),
+  ]);
+  const accountId = await dashboard.createAccount(name, type as "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT");
+  this.accountIds[name] = accountId;
+  await loadAccountsSettled;
 });
 
 When("the user creates a {string} account called {string} for {string}", async function (
@@ -43,20 +87,30 @@ When("the user creates a {string} account called {string} for {string}", async f
   ownerName: string
 ) {
   const dashboard = new DashboardPage(this.page);
-  await dashboard.createAccount(
+  const accountId = await dashboard.createAccount(
     ownerName,
     type as "CHEQUING" | "SAVINGS" | "TFSA" | "RRSP" | "FHSA" | "CREDIT",
     nickname
   );
+  this.accountIds[nickname] = accountId;
 });
 
 /**
- * Clicks an account row on the dashboard and waits for navigation to the account detail page.
+ * Navigates to the account detail page for the given account.
+ * Uses the stored account ID for direct navigation when available (fast path),
+ * otherwise falls back to /accounts to find and click the row link.
  */
 When("the user opens the account for {string}", async function (this: BloomWorld, name: string) {
-  const dashboard = new DashboardPage(this.page);
-  await dashboard.clickAccount(name);
-  await this.page.waitForURL(/\/account\//);
+  const accountId = this.accountIds[name];
+  if (accountId) {
+    await this.page.goto(`/account/${accountId}`);
+    await this.page.waitForURL(/\/account\//);
+  } else {
+    const dashboard = new DashboardPage(this.page);
+    await dashboard.gotoAccounts();
+    await dashboard.clickAccount(name);
+    await this.page.waitForURL(/\/account\//);
+  }
 });
 
 /**
@@ -95,10 +149,14 @@ Then("the header shows {string}", async function (this: BloomWorld, text: string
 });
 
 /**
- * Asserts an account row link with the given owner name is visible on the dashboard.
+ * Navigates to /accounts then asserts the account row link is visible.
+ * Account rows live at /accounts, not on the main dashboard.
  */
 Then("an account row for {string} is visible", async function (this: BloomWorld, name: string) {
   const dashboard = new DashboardPage(this.page);
+  if (!this.page.url().includes("/accounts")) {
+    await dashboard.gotoAccounts();
+  }
   await expect(dashboard.accountRow(name)).toBeVisible();
 });
 
@@ -108,6 +166,9 @@ Then("the account row for {string} shows owner {string}", async function (
   ownerName: string
 ) {
   const dashboard = new DashboardPage(this.page);
+  if (!this.page.url().includes("/accounts")) {
+    await dashboard.gotoAccounts();
+  }
   const row = dashboard.accountRow(nickname);
   await expect(row).toBeVisible();
   await expect(row.getByText(ownerName)).toBeVisible();
@@ -122,20 +183,21 @@ Then("a confirmation toast {string} is shown", async function (this: BloomWorld,
 });
 
 /**
- * Asserts the account row is scrolled into and intersects the viewport.
- * Covers the auto-scroll that reveals a newly created account at the bottom of the list.
+ * Navigates to /accounts then asserts the account row is in the viewport.
  */
 Then("the account row for {string} is visible in the viewport", async function (
   this: BloomWorld,
   name: string
 ) {
   const dashboard = new DashboardPage(this.page);
+  if (!this.page.url().includes("/accounts")) {
+    await dashboard.gotoAccounts();
+  }
   await expect(dashboard.accountRow(name)).toBeInViewport();
 });
 
 /**
- * Asserts the account type badge (span element) inside the account row shows the correct type.
- * Scoped to span to avoid matching the type toggle buttons or stats section.
+ * Navigates to /accounts then asserts the account type badge is visible in the list.
  */
 Then("the account row shows type {string}", async function (this: BloomWorld, type: string) {
   const typeLabelMap: Record<string, string> = {
@@ -147,6 +209,10 @@ Then("the account row shows type {string}", async function (this: BloomWorld, ty
     CREDIT: "Credit",
   };
 
+  const dashboard = new DashboardPage(this.page);
+  if (!this.page.url().includes("/accounts")) {
+    await dashboard.gotoAccounts();
+  }
   const expectedLabel = typeLabelMap[type] ?? type;
   await expect(this.page.getByText(expectedLabel, { exact: true }).first()).toBeVisible();
 });
@@ -192,7 +258,7 @@ Then("the available balance shows {string}", async function (this: BloomWorld, b
  * Asserts the current URL is the dashboard root.
  */
 Then("the user should be back on the dashboard", async function (this: BloomWorld) {
-  await expect(this.page).toHaveURL("/");
+  await expect(this.page).toHaveURL(/\/(\?.*)?$/);
 });
 
 /**
@@ -202,6 +268,34 @@ Then("the user should be back on the dashboard", async function (this: BloomWorl
 Then("the account balances chart is visible", async function (this: BloomWorld) {
   const dashboard = new DashboardPage(this.page);
   await expect(dashboard.balancesChart).toBeVisible();
+});
+
+When("the user deletes the account", async function (this: BloomWorld) {
+  await this.page.getByRole("button", { name: "Delete" }).click();
+  await Promise.all([
+    this.page.waitForResponse(
+      (response) =>
+        /\/api\/bloom\/accounts\/[^/]+$/.test(response.url()) &&
+        response.request().method() === "DELETE" &&
+        (response.status() === 200 || response.status() === 204)
+    ),
+    this.page.getByRole("button", { name: "Confirm" }).click(),
+  ]);
+  // Redirects to /?deleted=... after account removal
+  await this.page.waitForURL(/\/(\?.*)?$/);
+});
+
+When("the user cancels account deletion", async function (this: BloomWorld) {
+  await this.page.getByRole("button", { name: "Delete" }).click();
+  await this.page.getByRole("button", { name: "Cancel" }).click();
+});
+
+Then("the account row for {string} is not visible", async function (this: BloomWorld, name: string) {
+  const dashboard = new DashboardPage(this.page);
+  if (!this.page.url().includes("/accounts")) {
+    await dashboard.gotoAccounts();
+  }
+  await expect(dashboard.accountRow(name)).not.toBeVisible();
 });
 
 /**
