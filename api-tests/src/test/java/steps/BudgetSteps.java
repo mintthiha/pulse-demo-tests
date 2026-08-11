@@ -45,6 +45,34 @@ public class BudgetSteps {
         ctx.setLastResponse(response);
     }
 
+    @When("a budget is saved without a category")
+    public void aBudgetIsSavedWithoutACategory() {
+        Map<String, Object> body = new HashMap<>();
+        body.put("monthlyLimit", 100.0);
+        Response response = RestAssured
+            .given(baseRequest())
+                .body(body)
+            .when()
+                .put(ApiConfig.BUDGETS_PATH)
+            .then()
+                .extract().response();
+        ctx.setLastResponse(response);
+    }
+
+    @When("a budget is saved without a monthly limit")
+    public void aBudgetIsSavedWithoutAMonthlyLimit() {
+        Map<String, Object> body = new HashMap<>();
+        body.put("category", "Groceries");
+        Response response = RestAssured
+            .given(baseRequest())
+                .body(body)
+            .when()
+                .put(ApiConfig.BUDGETS_PATH)
+            .then()
+                .extract().response();
+        ctx.setLastResponse(response);
+    }
+
     @When("the saved budget is deleted")
     public void theSavedBudgetIsDeleted() {
         Response response = RestAssured

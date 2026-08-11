@@ -18,3 +18,10 @@ Feature: Profile Management
     Then the profile save confirmation is visible
     When the user reloads the profile page
     Then the profile form shows the saved values
+
+  Scenario: Sidebar shows the saved profile name and username
+    Given the user is on the dashboard
+    When the user visits the profile page
+    And the user saves the profile with first name "Alex", last name "Kim", and username prefix "alexkim"
+    Then the profile save confirmation is visible
+    And the sidebar shows the saved profile identity

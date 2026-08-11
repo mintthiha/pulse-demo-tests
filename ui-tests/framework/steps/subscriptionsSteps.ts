@@ -16,3 +16,7 @@ When("the user visits the subscriptions page", async function (this: BloomWorld)
 Then("the subscriptions empty state is visible", async function (this: BloomWorld) {
   await expect(this.page.getByText("No subscriptions detected yet")).toBeVisible();
 });
+
+Then("the subscription {string} is visible", async function (this: BloomWorld, name: string) {
+  await expect(this.page.getByText(name, { exact: false }).first()).toBeVisible();
+});

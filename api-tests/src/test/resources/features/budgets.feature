@@ -25,3 +25,35 @@ Feature: Category Budgets
     When all budgets are listed
     Then the response status is 200
     And the "Dining" budget current spending is 125.0
+
+  Scenario: Budget monthly limit can be updated
+    When a "Transport" budget is saved with monthly limit 200.00
+    Then the response status is 200
+    And the budget monthly limit is 200.0
+    When a "Transport" budget is saved with monthly limit 350.00
+    Then the response status is 200
+    And the budget monthly limit is 350.0
+    When all budgets are listed
+    Then the budget list includes category "Transport"
+    And the budget list has 1 budget
+
+  Scenario: Multiple budgets can be created and listed together
+    When a "Groceries" budget is saved with monthly limit 400.00
+    And a "Utilities" budget is saved with monthly limit 150.00
+    When all budgets are listed
+    Then the response status is 200
+    And the budget list has 2 budget
+    And the budget list includes category "Groceries"
+    And the budget list includes category "Utilities"
+
+  @Validation
+  Scenario: Budget with missing category is rejected
+    When a budget is saved without a category
+    Then the response status is 400
+    And the error message is "category is required"
+
+  @Validation
+  Scenario: Budget with missing monthly limit is rejected
+    When a budget is saved without a monthly limit
+    Then the response status is 400
+    And the error message is "monthlyLimit is required"
