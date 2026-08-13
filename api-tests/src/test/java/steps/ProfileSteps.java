@@ -133,6 +133,7 @@ public class ProfileSteps {
             .given()
                 .baseUri(ApiConfig.BASE_URL)
                 .contentType(ContentType.JSON)
-                .header("X-User-Id", userId);
+                .header("X-User-Id", userId)
+                .header("X-Internal-Secret", ApiConfig.INTERNAL_SECRET);
     }
 }

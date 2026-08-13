@@ -20,6 +20,7 @@ export class DashboardPage {
   readonly continueToBloomButton: Locator;
   readonly greetingHeading: Locator;
   readonly recurringRuleNameInput: Locator;
+  readonly recurringMerchantInput: Locator;
   readonly recurringAccountSelect: Locator;
   readonly recurringTypeSelect: Locator;
   readonly recurringAmountInput: Locator;
@@ -52,6 +53,7 @@ export class DashboardPage {
     this.continueToBloomButton = page.getByRole("button", { name: "Continue to Bloom" });
     this.greetingHeading = page.getByRole("heading", { name: /Good (morning|afternoon|evening)/i });
     this.recurringRuleNameInput = page.getByLabel("Recurring rule name");
+    this.recurringMerchantInput = page.getByLabel("Recurring merchant");
     this.recurringAccountSelect = page.getByLabel("Recurring account");
     this.recurringTypeSelect = page.getByLabel("Recurring transaction type");
     this.recurringAmountInput = page.getByPlaceholder("Amount");
@@ -254,6 +256,7 @@ export class DashboardPage {
 
   async saveRecurringRule(input: {
     name: string;
+    merchant?: string;
     account: string;
     type: "Deposit" | "Withdrawal";
     amount: number;
@@ -274,6 +277,10 @@ export class DashboardPage {
       }
     }
     await this.recurringRuleNameInput.fill(input.name);
+    // Subscription detection keys off the distinct "merchant" field, not the rule name —
+    // default it to the rule name so subscription-page scenarios can find it without
+    // every recurring-rule scenario having to say so explicitly.
+    await this.recurringMerchantInput.fill(input.merchant ?? input.name);
     await this.recurringAccountSelect.selectOption({ label: input.account });
     await this.recurringTypeSelect.selectOption({ label: input.type });
     await this.recurringAmountInput.fill(String(input.amount));

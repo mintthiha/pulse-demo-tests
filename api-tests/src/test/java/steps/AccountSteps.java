@@ -72,6 +72,7 @@ public class AccountSteps {
                 .baseUri(ApiConfig.BASE_URL)
                 .contentType(ContentType.JSON)
                 .header("X-User-Id", ctx.getUserId())
+                .header("X-Internal-Secret", ApiConfig.INTERNAL_SECRET)
             .when()
                 .patch(ApiConfig.ACCOUNTS_PATH + "/" + id + "/freeze")
             .then()
@@ -373,6 +374,7 @@ public class AccountSteps {
             .given()
                 .baseUri(ApiConfig.BASE_URL)
                 .contentType(ContentType.JSON)
-                .header("X-User-Id", ctx.getUserId());
+                .header("X-User-Id", ctx.getUserId())
+                .header("X-Internal-Secret", ApiConfig.INTERNAL_SECRET);
     }
 }

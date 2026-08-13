@@ -50,10 +50,10 @@ Feature: Category Budgets
   Scenario: Budget with missing category is rejected
     When a budget is saved without a category
     Then the response status is 400
-    And the error message is "category is required"
+    And the error message is "category must be a string"
 
   @Validation
   Scenario: Budget with missing monthly limit is rejected
     When a budget is saved without a monthly limit
     Then the response status is 400
-    And the error message is "monthlyLimit is required"
+    And the error message is "monthlyLimit must be a number"

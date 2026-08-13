@@ -56,6 +56,12 @@ Then("the sidebar shows the saved profile identity", async function (this: Bloom
     throw new Error("No saved profile values are available in the test world.");
   }
 
+  // Profile identity now lives in the header's account menu (ProfileMenu), not the
+  // sidebar. ProfileMenu only fetches the Prisma profile when the session user id
+  // changes, so it still holds stale (empty) data right after a save — reload to
+  // pick up the fresh profile, then open the menu to reveal the name/handle text.
+  await this.page.reload();
+  await this.page.getByRole("button", { name: "Account menu" }).click();
   await expect(this.page.getByText(`${savedProfile.firstName} ${savedProfile.lastName}`)).toBeVisible();
   await expect(this.page.getByText(`@${savedProfile.username}`)).toBeVisible();
 });

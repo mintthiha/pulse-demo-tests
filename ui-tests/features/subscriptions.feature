@@ -24,7 +24,7 @@ Feature: Subscriptions
     Given the user is on the dashboard
     And a "CHEQUING" account exists for "Multi Sub Owner"
     When the user creates a recurring "Withdrawal" rule named "Spotify" for "Multi Sub Owner" with amount 12, frequency "Monthly", category "Entertainment", and description "Music plan"
-    And the user creates a recurring "Withdrawal" rule named "Gym Membership" for "Multi Sub Owner" with amount 50, frequency "Monthly", category "Health", and description "Monthly gym"
+    And the user creates a recurring "Withdrawal" rule named "Gym Membership" for "Multi Sub Owner" with amount 50, frequency "Monthly", category "Healthcare", and description "Monthly gym"
     And the user visits the subscriptions page
     Then the subscription "Spotify" is visible
     And the subscription "Gym Membership" is visible

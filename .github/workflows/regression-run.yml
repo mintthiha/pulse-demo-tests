@@ -12,6 +12,11 @@ on:
         required: false
         default: 'all'
 
+env:
+  # Shared secret the backend's requireInternalSecret middleware requires on every /api/* request.
+  # Must be identical wherever the backend and its callers (frontend proxy, API tests) are started.
+  INTERNAL_API_SECRET: ci-regression-secret
+
 jobs:
   api-tests:
     name: API Tests (Cucumber + REST Assured)
@@ -55,6 +60,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bloom
           PORT: 3001
+          INTERNAL_API_SECRET: ${{ env.INTERNAL_API_SECRET }}
         run: |
           npm install
           npx prisma generate
@@ -74,7 +80,7 @@ jobs:
         working-directory: api-tests
         env:
           BLOOM_API_URL: http://localhost:3001
-        run: mvn test -Dbloom.api.url=http://localhost:3001
+        run: mvn test -Dbloom.api.url=http://localhost:3001 -Dbloom.api.secret=${{ env.INTERNAL_API_SECRET }}
 
       - name: Upload Cucumber report
         uses: actions/upload-artifact@v4
@@ -125,6 +131,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bloom
           PORT: 3001
+          INTERNAL_API_SECRET: ${{ env.INTERNAL_API_SECRET }}
         run: |
           npm install
           npx prisma generate
@@ -137,6 +144,7 @@ jobs:
         working-directory: bloom-app/frontend
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3001
+          INTERNAL_API_SECRET: ${{ env.INTERNAL_API_SECRET }}
         run: |
           npm install
           npm run build

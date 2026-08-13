@@ -43,6 +43,7 @@ public class RecurringSteps {
             .given()
                 .baseUri(ApiConfig.BASE_URL)
                 .contentType(ContentType.JSON)
+                .header("X-Internal-Secret", ApiConfig.INTERNAL_SECRET)
             .when()
                 .get(ApiConfig.RECURRING_PATH)
             .then()
@@ -283,6 +284,7 @@ public class RecurringSteps {
             .given()
                 .baseUri(ApiConfig.BASE_URL)
                 .contentType(ContentType.JSON)
-                .header("X-User-Id", ctx.getUserId());
+                .header("X-User-Id", ctx.getUserId())
+                .header("X-Internal-Secret", ApiConfig.INTERNAL_SECRET);
     }
 }

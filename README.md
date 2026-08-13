@@ -22,9 +22,13 @@ Two suites:
 
 ## Running API Tests
 
+The backend requires an `INTERNAL_API_SECRET` on every `/api/*` request. Point the tests at whatever
+secret your local backend was started with (defaults to `local-dev-secret` on both sides if you don't
+override either):
+
 ```bash
 cd api-tests
-mvn test
+mvn test -Dbloom.api.secret=<same value as your backend's INTERNAL_API_SECRET>
 ```
 
 Run only smoke tests:

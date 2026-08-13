@@ -107,6 +107,42 @@
       "value": "@Pending",
       "category": "status",
       "description": "Test is defined but not yet implementable — missing functionality in the app"
+    },
+    {
+      "name": "CategorizationRules",
+      "value": "@CategorizationRules",
+      "category": "feature",
+      "description": "Tests related to saved merchant-to-category auto-categorization rules"
+    },
+    {
+      "name": "SavingsGoals",
+      "value": "@SavingsGoals",
+      "category": "feature",
+      "description": "Tests related to creating, updating, and tracking progress on savings goals"
+    },
+    {
+      "name": "Notifications",
+      "value": "@Notifications",
+      "category": "feature",
+      "description": "Tests related to generated notifications, read/unread state, and dismissal"
+    },
+    {
+      "name": "Subscriptions",
+      "value": "@Subscriptions",
+      "category": "feature",
+      "description": "Tests related to auto-detected and rule-based subscription summaries"
+    },
+    {
+      "name": "AutoCategorize",
+      "value": "@AutoCategorize",
+      "category": "feature",
+      "description": "Tests related to AI-assisted merchant category suggestions"
+    },
+    {
+      "name": "Validation",
+      "value": "@Validation",
+      "category": "priority",
+      "description": "Tests covering input validation and error-response scenarios"
     }
   ]
 }

@@ -134,6 +134,7 @@ public class BudgetSteps {
             .given()
                 .baseUri(ApiConfig.BASE_URL)
                 .contentType(ContentType.JSON)
-                .header("X-User-Id", ctx.getUserId());
+                .header("X-User-Id", ctx.getUserId())
+                .header("X-Internal-Secret", ApiConfig.INTERNAL_SECRET);
     }
 }
