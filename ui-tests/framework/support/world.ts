@@ -11,6 +11,7 @@ export class BloomWorld extends World {
   context!: BrowserContext;
   page!: Page;
   accountIds: Record<string, string> = {};
+  budgetIds: Record<string, string> = {};
   testUser!: {
     id: string;
     name: string;
